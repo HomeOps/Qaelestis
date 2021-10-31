@@ -5,7 +5,7 @@ import logging
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ATTRIBUTION
-from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.core import HomeAssistant
 
 from .const import (
     ATTR_DEVICE_MODEL,
@@ -39,7 +39,7 @@ SWITCH_TYPES = {
     "record_always": ["Record Always", "video", "record_always", "recording_mode"],
     "record_smart": ["Record Smart", "video", "record_smart", "has_smartdetect"],
     "ir_mode": ["IR Active", "brightness-4", "ir_mode", "ir_mode"],
-    "status_light": ["Status Light On", "led-on", "status_light", None],
+    "status_light": ["Status Light On", "led-on", "status_light", "has_ledstatus"],
     "hdr_mode": ["HDR Mode", "brightness-7", "hdr_mode", "has_hdr"],
     "high_fps": ["High FPS", "video-high-definition", "high_fps", "has_highfps"],
     "light_motion": [
@@ -53,7 +53,7 @@ SWITCH_TYPES = {
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
     """Set up switches for UniFi Protect integration."""
     entry_data = hass.data[DOMAIN][entry.entry_id]
@@ -139,7 +139,11 @@ class UnifiProtectSwitch(UnifiProtectEntity, SwitchEntity):
             return self._device_data["motion_mode"] == TYPE_RECORD_MOTION
         if self._switch_type == "light_dark":
             return self._device_data["motion_mode"] == TYPE_RECORD_ALWAYS
-        return self._device_data["status_light"] is True
+        return (
+            self._device_data["status_light"] is True
+            if "status_light" in self._device_data
+            else True
+        )
 
     @property
     def icon(self):

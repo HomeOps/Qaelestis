@@ -6,9 +6,17 @@ default_config:
 tts:
   - platform: google_translate
 
+#sms:
+#  device: /dev/ttyUSB0
+
 group: !include groups.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 notify: !include notify.yaml
 
+logger:
+  default: info
+  logs:
+    homeassistant.components.sms: debug
+    gammu: debug

@@ -44,3 +44,6 @@ ui-lovelace.yaml
 /Lib
 /Scripts
 /pyvenv.cfg
+
+home-assistant.log.*
+
