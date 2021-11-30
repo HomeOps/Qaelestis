@@ -1,0 +1,4 @@
+# Sensors
+- platform: command_line
+  name: Caelestins Camera Url
+  command: "curl http://tinyurl.com/api-create.php?url=https://x0qpyh7y9mynbbh50i8egxrfuwdu5t2h.ui.nabu.casa/api/camera_proxy_stream/camera.caelestis_point?token={{state_attr('camera.caelestis_point', 'access_token')}}"
