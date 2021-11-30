@@ -23,3 +23,20 @@
 
         '
   mode: single
+- id: '1638240637238'
+  alias: Notify Movement
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.motion_caelestis_point
+    to: 'on'
+  condition: []
+  action:
+  - service: notify.sms_oscar
+    data:
+      message: https://x0qpyh7y9mynbbh50i8egxrfuwdu5t2h.ui.nabu.casa/api/camera_proxy_stream/camera.caelestis_point?token={{
+        state_attr('camera.caelestis_point', 'access_token') }}
+  - service: notify.sms_oscar
+    data:
+      message: Motion detected.
+  mode: single
