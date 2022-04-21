@@ -36,3 +36,18 @@
     data:
       message: 'Motion detected: {{states(''sensor.caelestis_camera_url'')}}'
   mode: single
+- id: '1648753452907'
+  alias: Reboot every Sunday
+  description: ''
+  trigger:
+  - platform: time
+    at: 04:45:00
+  condition:
+  - condition: time
+    before: 00:00:00
+    weekday:
+    - sun
+  action:
+  - service: hassio.host_reboot
+    data: {}
+  mode: single

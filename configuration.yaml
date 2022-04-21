@@ -17,6 +17,10 @@ notify: !include notify.yaml
 sensor: !include sensors.yaml
 python_script:
 
+http:
+  ssl_certificate: /ssl/fullchain.pem
+  ssl_key: /ssl/privkey.pem
+
 logger:
   default: info
   logs:
