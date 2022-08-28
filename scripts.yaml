@@ -1,0 +1,12 @@
+notify_sms_oscar:
+  alias: Notify SMS Oscar
+  fields:
+    message:
+      description: The message content
+      example: The light is on!
+  sequence:
+  - service: notify.sms
+    data:
+      message: '{{ message }}'
+      target:
+      - '{{ states(''sensor.oscar_phone_number'') }}'

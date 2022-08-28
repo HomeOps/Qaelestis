@@ -4,3 +4,6 @@
 - platform: sms
   name: sms_hazel
   recipient: !secret sms_hazel
+- platform: sms
+  name: sms
+  recipient: !secret sms_oscar
