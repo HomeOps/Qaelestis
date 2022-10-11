@@ -13,7 +13,7 @@ import logging
 import json
 import voluptuous as vol
 
-from homeassistant.components.climate import (ClimateDevice, PLATFORM_SCHEMA)
+from homeassistant.components.climate import (ClimateEntity, PLATFORM_SCHEMA)
 from homeassistant.components.climate.const import (
     ATTR_HVAC_MODE, HVAC_MODE_COOL, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY,
     HVAC_MODE_HEAT, SUPPORT_FAN_MODE, HVAC_MODE_AUTO, HVAC_MODE_OFF,
@@ -23,7 +23,7 @@ from homeassistant.const import (CONF_NAME, CONF_HOST, CONF_PORT,
 import homeassistant.helpers.config_validation as cv
 import xmltodict
 import requests
-REQUIREMENTS = ['xmltodict==0.11.0']
+#REQUIREMENTS = ['xmltodict==0.11.0']
 
 DOMAIN = 'ccm15'
 _LOGGER = logging.getLogger(__name__)
@@ -34,6 +34,7 @@ BASE_URL = 'http://{0}:{1}{2}'
 CONF_URL_STATUS = '/status.xml'
 CONF_URL_CTRL = '/ctrl.xml'
 
+CONF_UNIQUE_ID = 'unique_id'
 ATTR_MODE = 'mode'
 CONST_MODE_FAN_AUTO = 'auto'
 CONST_MODE_FAN_LOW = 'low'
@@ -185,13 +186,14 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 # pylint: disable=abstract-method
 # pylint: disable=too-many-instance-attributes
-class Thermostat(ClimateDevice):
+class Thermostat(ClimateEntity):
     """Representation of a Midea thermostat."""
 
     def __init__(self, name, ac_name, host, port, acdata):
         """Initialize the thermostat."""
         self._name = '{}_{}'.format(name, ac_name)
         self._ac_name = ac_name
+        self._unique_id = ac_name
         self._ac_id = 2 ** (int(ac_name.strip('a')))
         self._host = host
         self._port = port
@@ -201,6 +203,11 @@ class Thermostat(ClimateDevice):
         self.updateWithAcdata(acdata)
         _LOGGER.debug("Init called")
         self.update()
+        
+    @property
+    def unique_id(self):
+        """Return a unique ID."""
+        return self._unique_id
 
     @property
     def supported_features(self):
@@ -256,7 +263,7 @@ class Thermostat(ClimateDevice):
         return self._name
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the device specific state attributes."""
         return {
             ATTR_MODE: self._current_state
@@ -286,8 +293,7 @@ class Thermostat(ClimateDevice):
         else:
             self._current_settemp = int(math.ceil(temperature)) if temperature > self._current_settemp else int(math.floor(temperature))
             self.setStates()
-            self.async_write_ha_state()
-
+            self.schedule_update_ha_state()
     @property
     def hvac_mode(self):
         """Return the current state of the thermostat."""
@@ -301,7 +307,7 @@ class Thermostat(ClimateDevice):
             self._current_fan = self._current_setfan
         self._current_state = hvac_mode
         self.setStates()
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
         return
 
     @property
@@ -329,7 +335,7 @@ class Thermostat(ClimateDevice):
             self._current_setfan = self._current_fan
 
         self.setStates()
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
         return
 
     @property
