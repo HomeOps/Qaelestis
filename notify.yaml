@@ -1,9 +1,12 @@
-- platform: sms
+- platform: group
   name: sms_oscar
-  recipient: !secret sms_oscar
-- platform: sms
+  services:
+    - service: sms
+      data:
+        target: !secret sms_oscar
+- platform: group
   name: sms_hazel
-  recipient: !secret sms_hazel
-- platform: sms
-  name: sms
-  recipient: !secret sms_oscar
+  services:
+    - service: sms
+      data:
+        target: !secret sms_hazel
