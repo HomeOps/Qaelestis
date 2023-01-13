@@ -24,6 +24,13 @@ rainbird:
   password: !secret rainbird_password
   trigger_time: 360
 
+climate:
+  - platform: ccm15
+    name: mideaccm
+    host: ac-controller.cr.calvonet.com
+    port: 80
+    scan_interval: 10
+
 http:
   ssl_certificate: /ssl/fullchain.pem
   ssl_key: /ssl/privkey.pem
