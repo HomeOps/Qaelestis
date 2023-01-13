@@ -19,6 +19,11 @@ template: !include templates.yaml
 python_script:
 conversation:
 
+rainbird:
+  host: !secret rainbird_host
+  password: !secret rainbird_password
+  trigger_time: 360
+
 http:
   ssl_certificate: /ssl/fullchain.pem
   ssl_key: /ssl/privkey.pem
