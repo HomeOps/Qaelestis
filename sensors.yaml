@@ -2,3 +2,9 @@
 - platform: command_line
   name: Caelestis Camera Url
   command: "curl http://tinyurl.com/api-create.php?url=https://x0qpyh7y9mynbbh50i8egxrfuwdu5t2h.ui.nabu.casa/api/camera_proxy_stream/camera.caelestis_point?token={{state_attr('camera.caelestis_point', 'access_token')}}"
+- platform: rest
+  name: Main Tank Water Level
+  resource: http://192.168.10.219/get_sensors
+  scan_interval: 120
+  value_template: '{{ (value_json.local_s | regex_findall_index("1\":(-?\d+\.?\d+)") | float - 82.3636363636364) | multiply(0.244444444444444) | round(0) }}'
+  unit_of_measurement: "%"
