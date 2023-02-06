@@ -19,25 +19,6 @@ template: !include templates.yaml
 python_script:
 conversation:
 
-rainbird:
-  host: !secret rainbird_host
-  password: !secret rainbird_password
-  trigger_time:
-    minutes: 6
-  zones:
-    1:
-      friendly_name: Perimeter
-      trigger_time:
-        minutes: 6
-    2:
-      friendly_name: Patio
-      trigger_time:
-        minutes: 6
-    3:
-      friendly_name: Garden
-      trigger_time:
-        minutes: 6
-
 climate:
   - platform: ccm15
     name: mideaccm
