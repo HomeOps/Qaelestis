@@ -19,12 +19,8 @@ template: !include templates.yaml
 python_script:
 conversation:
 
-climate:
-  - platform: ccm15
-    name: mideaccm
-    host: ac-controller.cr.calvonet.com
-    port: 80
-    scan_interval: 10
+climate: !include climate.yaml
+mqtt: !include mqtt.yaml
 
 http:
   ssl_certificate: /ssl/fullchain.pem

@@ -1,0 +1,93 @@
+climate:
+  - action_topic: /aircon/a043b0f39945/homeassistant/set
+    availability_topic: /aircon/LWT
+    current_temperature_topic: /aircon/a043b0f39945/ambient_temp/value
+    device:
+      identifiers: a043b0f39945
+      manufacturer: Broadlink
+      model: Aircon
+      name: Upstairs Bathroom
+      sw_version: 1.1.3
+    fan_mode_command_topic: /aircon/a043b0f39945/fanspeed_homeassistant/set
+    fan_mode_state_topic: /aircon/a043b0f39945/fanspeed_homeassistant/value
+    fan_modes:
+    - Auto
+    - Low
+    - Medium
+    - High
+    - Turbo
+    - Mute
+    max_temp: 32.0
+    min_temp: 16.0
+    mode_command_topic: /aircon/a043b0f39945/mode_homeassistant/set
+    mode_state_topic: /aircon/a043b0f39945/mode_homeassistant/value
+    modes:
+    - 'off'
+    - cool
+    - heat
+    - fan_only
+    - dry
+    name: Upstairs Bathroom
+    payload_available: online
+    payload_not_available: offline
+    precision: 0.5
+    swing_mode_command_topic: /aircon/a043b0f39945/fixation_v/set
+    swing_mode_state_topic: /aircon/a043b0f39945/fixation_v/value
+    swing_modes:
+    - TOP
+    - MIDDLE1
+    - MIDDLE2
+    - MIDDLE3
+    - BOTTOM
+    - SWING
+    - AUTO
+    temp_step: 0.5
+    temperature_command_topic: /aircon/a043b0f39945/temp/set
+    temperature_state_topic: /aircon/a043b0f39945/temp/value
+    unique_id: a043b0f39945
+  - action_topic: /aircon/a043b0f3c953/homeassistant/set
+    availability_topic: /aircon/LWT
+    current_temperature_topic: /aircon/a043b0f3c953/ambient_temp/value
+    device:
+      identifiers: a043b0f3c953
+      manufacturer: Broadlink
+      model: Aircon
+      name: Master Bathroom
+      sw_version: 1.1.3
+    fan_mode_command_topic: /aircon/a043b0f3c953/fanspeed_homeassistant/set
+    fan_mode_state_topic: /aircon/a043b0f3c953/fanspeed_homeassistant/value
+    fan_modes:
+    - Auto
+    - Low
+    - Medium
+    - High
+    - Turbo
+    - Mute
+    max_temp: 32.0
+    min_temp: 16.0
+    mode_command_topic: /aircon/a043b0f3c953/mode_homeassistant/set
+    mode_state_topic: /aircon/a043b0f3c953/mode_homeassistant/value
+    modes:
+    - 'off'
+    - cool
+    - heat
+    - fan_only
+    - dry
+    name: Master Bathroom
+    payload_available: online
+    payload_not_available: offline
+    precision: 0.5
+    swing_mode_command_topic: /aircon/a043b0f3c953/fixation_v/set
+    swing_mode_state_topic: /aircon/a043b0f3c953/fixation_v/value
+    swing_modes:
+    - TOP
+    - MIDDLE1
+    - MIDDLE2
+    - MIDDLE3
+    - BOTTOM
+    - SWING
+    - AUTO
+    temp_step: 0.5
+    temperature_command_topic: /aircon/a043b0f3c953/temp/set
+    temperature_state_topic: /aircon/a043b0f3c953/temp/value
+    unique_id: a043b0f3c953

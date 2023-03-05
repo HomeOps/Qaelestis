@@ -1,0 +1,5 @@
+- platform: ccm15
+  name: mideaccm
+  host: ac-controller1.cr.calvonet.com
+  port: 80
+  scan_interval: 10
