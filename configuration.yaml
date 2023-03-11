@@ -26,6 +26,10 @@ http:
   ssl_certificate: /ssl/fullchain.pem
   ssl_key: /ssl/privkey.pem
 
+alarm_control_panel:
+  - platform: manual
+    name: Home Alarm
+
 logger:
   default: info
   logs:
