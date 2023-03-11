@@ -48,6 +48,9 @@
     weekday:
     - sun
   action:
+  - data:
+      message: Reboot
+    service: notify.sms_oscar
   - service: hassio.host_reboot
     data: {}
   mode: single
