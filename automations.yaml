@@ -23,19 +23,6 @@
 
         '
   mode: single
-- id: '1638240637238'
-  alias: Notify Movement
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: binary_sensor.motion_caelestis_point
-    to: 'on'
-  condition: []
-  action:
-  - service: script.notify_sms_oscar
-    data:
-      message: 'Motion detected: {{states(''sensor.caelestis_camera_url'')}}'
-  mode: single
 - id: '1648753452907'
   alias: Reboot every Sunday
   description: ''
@@ -53,4 +40,36 @@
     service: notify.sms_oscar
   - service: hassio.host_reboot
     data: {}
+  mode: single
+- id: '1679363665451'
+  alias: Open Pool Valve when Main Tank is full
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.main_tank_water_level
+    above: 95
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  condition: []
+  action:
+  - service: switch.turn_on
+    data: {}
+    target:
+      entity_id: switch.pool_water_supply
+  mode: single
+- id: '1679364103684'
+  alias: Close Pool Valve when Main Tank is low
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.main_tank_water_level
+    below: 90
+  condition: []
+  action:
+  - service: switch.turn_off
+    data: {}
+    target:
+      entity_id: switch.pool_water_supply
   mode: single
