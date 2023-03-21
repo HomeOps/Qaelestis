@@ -16,6 +16,7 @@ scene: !include scenes.yaml
 notify: !include notify.yaml
 sensor: !include sensors.yaml
 template: !include templates.yaml
+alert: !include alerts.yaml
 python_script:
 conversation:
 

@@ -1,0 +1,12 @@
+water_tank_low:
+  name: Water Tank is low
+  message: "Water Tank level is low"
+  done_message: "Water Tank level is aceptable"
+  entity_id: binary_sensor.main_tank_water_low
+  state: 'on'
+  repeat: 30
+  can_acknowledge: true
+  skip_first: false
+  notifiers:
+    - sms_oscar
+    - sms_hazel
