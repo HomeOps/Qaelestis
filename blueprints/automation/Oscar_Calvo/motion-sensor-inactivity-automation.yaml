@@ -77,15 +77,16 @@ trigger:
   to: 'off'
   for:
     hours: !input inactivity_hours
+variables:
+  light_entities: !input light_entities
+  climate_entity: !input climate_entity
+  cover_entity: !input cover_entity
+  sun_condition: !input sun_condition
 condition:
 - condition: template
   value_template: "{{ (sun_condition == 'ignore') or ((sun_condition == 'above_horizon'
     and states.sun.sun.state == 'above_horizon') or (sun_condition == 'below_horizon'
     and states.sun.sun.state == 'below_horizon')) }}"
-variables:
-  light_entities: !input light_entities
-  climate_entity: !input climate_entity
-  cover_entity: !input cover_entity
 action:
 - choose:
   - conditions: '{{ light_entities|length > 0 }}'
