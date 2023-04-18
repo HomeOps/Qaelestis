@@ -73,3 +73,33 @@
     target:
       entity_id: switch.pool_water_supply
   mode: single
+- id: '1679529808488'
+  alias: Turn pantry lights on when door opens
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.pantry_door_sensor_window_door_is_open
+    to: 'on'
+  condition: []
+  action:
+  - service: light.turn_on
+    data: {}
+    target:
+      entity_id: light.pantry_lights
+  mode: single
+- id: '1679529882466'
+  alias: Turn pantry lights off when door closes
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.pantry_door_sensor_window_door_is_open
+    to: 'off'
+  condition: []
+  action:
+  - service: light.turn_off
+    data: {}
+    target:
+      entity_id: light.pantry_lights
+  mode: single

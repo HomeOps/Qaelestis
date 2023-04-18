@@ -1,5 +1,10 @@
 - platform: ccm15
-  name: mideaccm
-  host: ac-controller1.cr.calvonet.com
+  name: ac-cntr1
+  host: ac-cntr1.cr.calvonet.com
+  port: 80
+  scan_interval: 10
+- platform: ccm15
+  name: ac-cntr2
+  host: ac-cntr2.cr.calvonet.com
   port: 80
   scan_interval: 10
