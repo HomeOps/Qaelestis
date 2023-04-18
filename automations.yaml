@@ -103,3 +103,32 @@
     target:
       entity_id: light.pantry_lights
   mode: single
+- id: '1681787559667'
+  alias: Motion Sensor Inactivity Master Bedroom
+  description: ''
+  use_blueprint:
+    path: Oscar_Calvo/motion-sensor-inactivity-automation.yaml
+    input:
+      motion_sensor_entities:
+      - binary_sensor.master_bedroom_sensor_motion_detection
+      light_entities:
+      - light.master_bedroom_east_light
+      - light.master_bedroom_west_light
+      - light.master_bedroom_valance_white
+      - light.master_bedroom_lights
+      climate_entity: climate.master_bedroom
+      sun_condition: ignore
+- id: '1681787701102'
+  alias: Motion Sensor Inactivity Den
+  description: ''
+  use_blueprint:
+    path: Oscar_Calvo/motion-sensor-inactivity-automation.yaml
+    input:
+      motion_sensor_entities:
+      - binary_sensor.den_sensor_motion_detection
+      cover_entity: cover.den_blinds
+      light_entities:
+      - light.den_north_lights
+      - light.den_south_lights
+      climate_entity: climate.den
+      sun_condition: ignore

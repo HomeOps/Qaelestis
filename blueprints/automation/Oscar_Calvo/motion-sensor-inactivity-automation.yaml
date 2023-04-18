@@ -1,0 +1,107 @@
+blueprint:
+  name: Motion Sensor Inactivity Automation with Sun Condition
+  description: If one or more motion sensors have not detected movement for a specified
+    number of hours and the sun is up or down, close a cover and turn off lights and
+    climate control.
+  domain: automation
+  input:
+    motion_sensor_entities:
+      name: Motion Sensors
+      description: The entity IDs of the motion sensors to monitor for inactivity.
+        If any of the sensors have not detected motion for the specified number of
+        hours, the automation will trigger.
+      selector:
+        entity:
+          domain:
+          - binary_sensor
+          device_class:
+          - motion
+          multiple: true
+    cover_entity:
+      name: Cover
+      description: The entity ID of the cover to close when motion sensor is inactive
+        for the specified number of hours.
+      default: {}
+      selector:
+        entity:
+          domain:
+          - cover
+          multiple: false
+    light_entities:
+      name: Lights
+      description: The entity IDs of the lights to turn off when motion sensor is
+        inactive for the specified number of hours.
+      selector:
+        entity:
+          domain:
+          - light
+          multiple: true
+    climate_entity:
+      name: Climate Control
+      description: The entity ID of the climate control to turn off when motion sensor
+        is inactive for the specified number of hours.
+      selector:
+        entity:
+          domain:
+          - climate
+          multiple: false
+    sun_condition:
+      name: Sun Condition
+      description: When to run the automation - "above_horizon" for when the sun is
+        up, "below_horizon" for when the sun is down, or "ignore" to run regardless
+        of sun condition.
+      selector:
+        select:
+          options:
+          - ignore
+          - above_horizon
+          - below_horizon
+          custom_value: false
+          multiple: false
+    inactivity_hours:
+      name: Inactivity Hours
+      description: The number of hours of inactivity to trigger the automation.
+      default: 1
+      selector:
+        number:
+          min: 1.0
+          max: 24.0
+          step: 1.0
+          unit_of_measurement: hours
+          mode: slider
+  source_url: https://community.home-assistant.io/t/motion-sensor-inactivity-automation/561600
+mode: single
+trigger:
+- platform: state
+  entity_id: !input motion_sensor_entities
+  to: 'off'
+  for:
+    hours: !input inactivity_hours
+condition:
+- condition: template
+  value_template: "{{ (sun_condition == 'ignore') or ((sun_condition == 'above_horizon'
+    and states.sun.sun.state == 'above_horizon') or (sun_condition == 'below_horizon'
+    and states.sun.sun.state == 'below_horizon')) }}"
+variables:
+  light_entities: !input light_entities
+  climate_entity: !input climate_entity
+  cover_entity: !input cover_entity
+action:
+- choose:
+  - conditions: '{{ light_entities|length > 0 }}'
+    sequence:
+    - service: light.turn_off
+      data:
+        entity_id: !input light_entities
+- choose:
+  - conditions: '{{ climate_entity|length > 0 }}'
+    sequence:
+    - service: climate.turn_off
+      target:
+        entity_id: !input climate_entity
+- choose:
+  - conditions: '{{ cover_entity|length > 0 }}'
+    sequence:
+    - service: cover.close_cover
+      target:
+        entity_id: !input cover_entity
