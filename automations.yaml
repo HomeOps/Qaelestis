@@ -117,7 +117,7 @@
       - light.master_bedroom_valance_white
       - light.master_bedroom_lights
       climate_entity: climate.master_bedroom
-      sun_condition: ignore
+      sun_condition: above_horizon
 - id: '1681787701102'
   alias: Motion Sensor Inactivity Den
   description: ''
