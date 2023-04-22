@@ -132,3 +132,32 @@
       - light.den_south_lights
       climate_entity: climate.den
       sun_condition: ignore
+- id: '1682191177071'
+  alias: Zwave - Ping Dead Nodes
+  description: Try to ping a node if it goes dead to bring it back up
+  trigger:
+  - platform: event
+    event_type: state_changed
+  condition:
+  - condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.new_state.domain == "sensor" }}'
+    - condition: template
+      value_template: '{{ trigger.event.data.new_state.state == "dead" }}'
+  action:
+  - repeat:
+      until:
+      - condition: template
+        value_template: '{{ trigger.event.data.new_state.state == "alive" }}'
+      sequence:
+      - service: zwave_js.ping
+        target:
+          entity_id: '{{ trigger.entity_id }}'
+      - delay:
+          hours: 0
+          minutes: 1
+          seconds: 0
+          milliseconds: 0
+  mode: parallel
+  max: 5
