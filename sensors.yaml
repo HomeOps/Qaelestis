@@ -12,3 +12,10 @@
 #- platform: solaredge_local
 #  name: SolarEdge
 #  ip_address: 192.168.10.59
+- platform: template
+  sensors:
+    failed_zwave:
+      value_template: >
+        {{ states | selectattr("entity_id", "search", "node_status") |
+           selectattr('state', 'in', 'dead, unavailable, unknown') |
+           map(attribute='entity_id') | list }}

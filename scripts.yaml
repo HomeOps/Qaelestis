@@ -10,3 +10,10 @@ notify_sms_oscar:
       message: '{{ message }}'
       target:
       - '{{ states(''sensor.oscar_phone_number'') }}'
+ping_dead_nodes:
+  alias: Ping dead nodes
+  sequence:
+  - service: zwave_js.ping
+    target:
+      entity_id: '{{ states.sensor.failed_zwave.state }}'
+  mode: single

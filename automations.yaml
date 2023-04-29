@@ -161,3 +161,20 @@
           milliseconds: 0
   mode: parallel
   max: 5
+- id: '1682233979057'
+  alias: Master Bedroom Lights Double Taps
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: 736aad908eff817b14f1e1d2b34e8837
+      double_tap_on:
+      - service: light.turn_on
+        data: {}
+        target:
+          entity_id: light.master_bedroom_valance_white
+      double_tap_off:
+      - service: light.turn_off
+        data: {}
+        target:
+          entity_id: light.master_bedroom_valance_white
