@@ -15,6 +15,7 @@ script: !include scripts.yaml
 scene: !include scenes.yaml
 notify: !include notify.yaml
 sensor: !include sensors.yaml
+binary_sensor: !include binary_sensors.yaml
 template: !include templates.yaml
 alert: !include alerts.yaml
 python_script:

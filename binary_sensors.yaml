@@ -1,0 +1,6 @@
+- platform: template
+  sensors:
+    power_outage:
+      friendly_name: "Power Outage"
+      device_class: power
+      value_template: "{{ states('sensor.solaredge_i1_status') | int <= 2 }}"
