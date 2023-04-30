@@ -32,8 +32,8 @@ alarm_control_panel:
   - platform: manual
     name: Home Alarm
 
-logger:
-  default: info
-  logs:
-    homeassistant.components.sms: debug
-    gammu: debug
+#logger:
+#  default: info
+#  logs:
+#    homeassistant.components.sms: debug
+#    gammu: debug
