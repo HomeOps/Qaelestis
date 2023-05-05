@@ -2,5 +2,38 @@
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
-  state: "{{float(states('sensor.solaredge_m1_ac_power'), 0)+float(states('sensor.solaredge_m2_ac_power'), 0)}}"
+  state: "{{ float(states('sensor.solaredge_m1_ac_power'), 0) + float(states('sensor.solaredge_m2_ac_power'), 0) }}"
+
+- name: "Power - Solar Generation"                                        
+  unit_of_measurement: "W"                                                
+  device_class: "power"                                                   
+  state_class: "measurement"                                              
+  # DC power from inverter
+  state: "{{ float(states('sensor.solaredge_i1_dc_power'), 0) }}"
+                                                                                                
+- name: "Power - Consumption"                                    
+  unit_of_measurement: "W"                                                
+  device_class: "power"                                                   
+  state_class: "measurement"        
+  # The net of inverter and grid power
+  state: "{{ float(states('sensor.solaredge_i1_ac_power'), 0) - float(states('sensor.solaredge_m_ac_power'), 0) }}"
+
+- name: "Power - Grid - Load"                                             
+  unit_of_measurement: "W"                                                
+  device_class: "power"                                                   
+  state_class: "measurement"                                              
+  state: "{{ min([float(states('sensor.solaredge_m_ac_power'), 0), 0]) | abs() }}"
+
+- name: "Power - PV - Grid"                                             
+  unit_of_measurement: "W"                                                
+  device_class: "power"                                                   
+  state_class: "measurement"                                              
+  state: "{{ max([float(states('sensor.solaredge_m_ac_power'), 0), 0]) | abs() }}"    
+
+- name: "Power - PV - Load"                                               
+  unit_of_measurement: "W"                                                
+  device_class: "power"
+  state_class: "measurement"                                              
+  # What is being generated less what is being exported, always positive.
+  state: "{{ max([float(states('sensor.power_solar_generation'), 0) - float(states('sensor.power_pv_grid'), 0), 0]) }}"
 
