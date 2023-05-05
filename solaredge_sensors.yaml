@@ -1,0 +1,6 @@
+- name: "Solaredge M AC Power"
+  unit_of_measurement: "W"
+  device_class: "power"
+  state_class: "measurement"
+  state: "{{float(states('sensor.solaredge_m1_ac_power'), 0)+float(states('sensor.solaredge_m2_ac_power'), 0)}}"
+

@@ -1,9 +1,3 @@
-- sensor:
-  - name: "Oscar Phone Number"
-    state: !secret sms_oscar
-- sensor:
-  - name: "Hazel Phone Number"
-    state: !secret sms_hazel
-- binary_sensor:
-  - name: "Main Tank Water Low"
-    state: "{{ states('sensor.main_tank_water_level') | float(default=99) <= 50 }}"
+- sensor: !include template_sensors.yaml
+- binary_sensor: !include template_binary_sensors.yaml
+- sensor: !include solaredge_sensors.yaml

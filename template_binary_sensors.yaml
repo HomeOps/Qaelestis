@@ -1,0 +1,2 @@
+- name: "Main Tank Water Low"
+  state: "{{ states('sensor.main_tank_water_level') | float(default=99) <= 50 }}"
