@@ -4,6 +4,12 @@
   state_class: "measurement"
   state: "{{ float(states('sensor.solaredge_storage_power'), 0) * 1000 }}"
 
+- name: "Solaredge M AC Power"
+  unit_of_measurement: "W"
+  device_class: "power"
+  state_class: "measurement"
+  state: "{{ float(states('sensor.solaredge_m1_ac_power'), 0) + float(states('sensor.solaredge_m2_ac_power'), 0) }}"
+
 - name: "Power - Battery Charging"
   unit_of_measurement: "W"
   device_class: "power"
@@ -16,18 +22,23 @@
   state_class: "measurement"
   state: "{{ min([float(states('sensor.solaredge_b1_dc_power'), 0), 0]) | abs() }}"
 
-- name: "Solaredge M AC Power"
+- name: "Power - Grid Import"
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
-  state: "{{ float(states('sensor.solaredge_m1_ac_power'), 0) + float(states('sensor.solaredge_m2_ac_power'), 0) }}"
+  state: "{{ min([float(states('sensor.solaredge_m_ac_power'), 0), 0]) | abs() }}"
+- name: "Power - Grid Export"
+  unit_of_measurement: "W"
+  device_class: "power"
+  state_class: "measurement"
+  state: "{{ max([float(states('sensor.solaredge_m_ac_power'), 0), 0]) | abs() }}"
 
 - name: "Power - Solar Generation"
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
-  # DC power from inverter
-  state: "{{ float(states('sensor.solaredge_i1_dc_power'), 0) }}"
+  # The net of DC power from inverter and battery, only if this is positive
+  state: "{{ max([float(states('sensor.solaredge_i1_dc_power'), 0) + float(states('sensor.solaredge_b1_dc_power'), 0), 0]) }}"
 
 - name: "Power - Consumption"
   unit_of_measurement: "W"
@@ -36,22 +47,43 @@
   # The net of inverter and grid power
   state: "{{ float(states('sensor.solaredge_i1_ac_power'), 0) - float(states('sensor.solaredge_m_ac_power'), 0) }}"
 
-- name: "Power - Grid - Load"
+- name: "Power - PV - Battery"
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
-  state: "{{ min([float(states('sensor.solaredge_m_ac_power'), 0), 0]) | abs() }}"
-
-- name: "Power - PV - Grid"
-  unit_of_measurement: "W"
-  device_class: "power"
-  state_class: "measurement"
-  state: "{{ max([float(states('sensor.solaredge_m_ac_power'), 0), 0]) | abs() }}"
-
+  # Battery power less anything coming from the grid, always positive
+  state: "{{ max([float(states('sensor.solaredge_b1_dc_power'), 0) + min([float(states('sensor.solaredge_i1_dc_power'), 0), 0]), 0]) }}"
 - name: "Power - PV - Load"
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
-  # What is being generated less what is being exported, always positive.
-  state: "{{ max([float(states('sensor.power_solar_generation'), 0) - float(states('sensor.power_pv_grid'), 0), 0]) }}"
+  # What is being generated less what is going to the battery and what is being exported, always positive.
+  state: "{{ max([float(states('sensor.power_solar_generation'), 0) - float(states('sensor.power_pv_battery'), 0) - float(states('sensor.power_grid_export'), 0), 0]) }}"
+- name: "Power - PV - Grid"
+  unit_of_measurement: "W"
+  device_class: "power"
+  state_class: "measurement"
+  # What is being generated less what is going to the battery and what is being consumed, always positive
+  state: "{{ max([float(states('sensor.power_solar_generation'), 0) - float(states('sensor.power_pv_battery'), 0) - float(states('sensor.power_consumption'), 0), 0]) }}"
+
+- name: "Power - Grid - Load"
+  unit_of_measurement: "W"
+  device_class: "power"
+  state_class: "measurement"
+  # What is being imported less anything going to the battery, always positive
+  state: "{{ max([float(states('sensor.power_grid_import'), 0) + min([float(states('sensor.solaredge_i1_ac_power'), 0), 0]), 0]) }}"
+- name: "Power - Grid - Battery"
+  unit_of_measurement: "W"
+  device_class: "power"
+  state_class: "measurement"
+  # Grid -> Battery is I1 AC power, when negative
+  # Battery -> Grid is what is being exported, if the battery is discharging
+  state: "{{ max([-float(states('sensor.solaredge_i1_ac_power'), 0), 0]) - (float(states('sensor.power_grid_export'), 0) if float(states('sensor.solaredge_b1_dc_power'), 0) < 0 else 0) }}"
+
+- name: "Power - Battery - Load"
+  unit_of_measurement: "W"
+  device_class: "power"
+  state_class: "measurement"
+  # What is being discharged minus what is being exported, if positive
+  state: "{{ max([float(states('sensor.power_battery_discharging'), 0) - float(states('sensor.power_grid_export'), 0), 0]) }}"
 
