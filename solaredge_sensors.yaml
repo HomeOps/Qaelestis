@@ -2,13 +2,13 @@
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
-  state: "{{ float(states('sensor.solaredge_storage_power'), 0) * 1000 }}"
+  state: "{{ float(states('sensor.solaredge_storage_power'), 0) * -1000.0 }}"
 
 - name: "Solaredge M AC Power"
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
-  state: "{{ float(states('sensor.solaredge_m1_ac_power'), 0) + float(states('sensor.solaredge_m2_ac_power'), 0) }}"
+  state: "{{ float(states('sensor.solaredge_m1_ac_power'), 0) - float(states('sensor.solaredge_m2_ac_power'), 0) }}"
 
 - name: "Power - Battery Charging"
   unit_of_measurement: "W"
@@ -38,14 +38,14 @@
   device_class: "power"
   state_class: "measurement"
   # The net of DC power from inverter and battery, only if this is positive
-  state: "{{ max([float(states('sensor.solaredge_i1_dc_power'), 0) + float(states('sensor.solaredge_b1_dc_power'), 0), 0]) }}"
+  state: "{{ max([float(states('sensor.solaredge_i1_dc_power'), 0) + float(states('sensor.solaredge_i2_dc_power'), 0), 0]) }}"
 
 - name: "Power - Consumption"
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
   # The net of inverter and grid power
-  state: "{{ float(states('sensor.solaredge_i1_ac_power'), 0) - float(states('sensor.solaredge_m_ac_power'), 0) }}"
+  state: "{{ float(states('sensor.solaredge_i1_ac_power'), 0) + float(states('sensor.solaredge_i2_ac_power'), 0) }}"
 
 - name: "Power - PV - Battery"
   unit_of_measurement: "W"
