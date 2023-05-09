@@ -4,11 +4,17 @@
   state_class: "measurement"
   state: "{{ (float(states('sensor.solaredge_i1_ac_power'), 0) + float(states('sensor.solaredge_i2_ac_power'), 0)) / 1000.0 }}"
 
+- name: "Power - Solar Consumption"
+  unit_of_measurement: "Wh"
+  device_class: "power"
+  state_class: "measurement"
+  state: "{{ ((float(states('sensor.solaredge_m1_ac_power'), 0) | abs()) + (float(states('sensor.solaredge_m1_ac_power_2'), 0) | abs())) }}"
+
 - name: "Power - Home Consumption"
   unit_of_measurement: "kWh"
   device_class: "power"
   state_class: "measurement"
-  state: "{{ ((float(states('sensor.home_energy_meter_electric_consumption_w_2_2'), 0) | abs()) + (float(states('sensor.home_energy_meter_electric_consumption_w_2'), 0) | abs())) / 1000.0 }}"
+  state: "{{ ((float(states('sensor.power_solar_consumption'), 0) | abs()) + (float(states('sensor.home_energy_meter_electric_consumption_w_2_2'), 0) | abs()) + (float(states('sensor.home_energy_meter_electric_consumption_w_2'), 0) | abs())) / 1000.0 }}"
 
 - name: "Power - Grid Import"
   unit_of_measurement: "kWh"
