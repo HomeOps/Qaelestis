@@ -178,3 +178,37 @@
         data: {}
         target:
           entity_id: light.master_bedroom_valance_white
+- id: '1683657299093'
+  alias: Master Bedroom East Blinds
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: 01cfafa677dc86ae136498ae90736d93
+      double_tap_on:
+      - service: cover.open_cover
+        data: {}
+        target:
+          entity_id: cover.master_bedroom_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        data: {}
+        target:
+          entity_id: cover.master_bedroom_blinds
+- id: '1683657994954'
+  alias: Master Bedroom West Blinds
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: 993e2b576c369a49c4185024ebf75b6c
+      double_tap_on:
+      - service: cover.open_cover
+        data: {}
+        target:
+          entity_id: cover.master_bedroom_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        data: {}
+        target:
+          entity_id: cover.master_bedroom_blinds
