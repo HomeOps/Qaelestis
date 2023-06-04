@@ -212,3 +212,37 @@
         data: {}
         target:
           entity_id: cover.master_bedroom_blinds
+- id: '1683676341841'
+  alias: South Bedroom Blinds
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      double_tap_on:
+      - service: cover.open_cover
+        data: {}
+        target:
+          entity_id: cover.south_bedroom_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        data: {}
+        target:
+          entity_id: cover.south_bedroom_blinds
+      device: 80a3e9cf2f466d5c6c8da4959fec5b4e
+- id: '1685075877837'
+  alias: Guest Bedroom Blinds
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: d90440495859223e336a7cb88051d00c
+      double_tap_on:
+      - service: cover.open_cover
+        data: {}
+        target:
+          entity_id: cover.guest_bedroom_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        data: {}
+        target:
+          entity_id: cover.guest_bedroom_blinds
