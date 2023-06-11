@@ -3,4 +3,4 @@
     power_outage:
       friendly_name: "Power Outage"
       device_class: power
-      value_template: "{{ states('sensor.solaredge_i1_status') | int <= 2 }}"
+      value_template: "{{ (states('sensor.solaredge_m2_ac_current') == 'unknown') and (states('sensor.solaredge_i1_ac_current') != 'unknown') and (states('sensor.solaredge_i2_ac_current') != 'unknown') }}"
