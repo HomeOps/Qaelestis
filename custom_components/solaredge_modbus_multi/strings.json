@@ -32,7 +32,6 @@
         "title": "SolarEdge Modbus Options",
         "data": {
           "scan_interval": "Polling Frequency (seconds)",
-          "single_device_entity": "Single Device Entity",
           "keep_modbus_open": "Keep Modbus Connection Open",
           "detect_meters": "Auto-Detect Meters",
           "detect_batteries": "Auto-Detect Batteries",
@@ -60,6 +59,34 @@
       "invalid_scan_interval": "Valid interval is 1 to 86400 seconds.",
       "invalid_sleep_interval": "Valid interval is 0 to 60 seconds.",
       "invalid_percent": "Valid range is 0 to 100 percent."
+    }
+  },
+  "issues": {
+    "check_configuration": {
+      "title": "Check Modbus Configuration",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Check Modbus Configuration",
+            "description": "An error occured while trying to open a Modbus/TCP connection.\n\nPlease confirm your configuration.",
+            "data": {
+              "host": "Inverter IP Address",
+              "port": "Modbus/TCP Port",
+              "device_id": "Inverter Modbus Address (Device ID)",
+              "number_of_inverters": "Number of Inverters"
+            }
+          }
+        },
+        "error": {
+          "max_device_id": "Device ID must be between 1 to 247.",
+          "min_device_id": "Device ID must be between 1 to 247.",
+          "max_inverters": "Must be between 1 to 32 inverters.",
+          "min_inverters": "Must be between 1 to 32 inverters.",
+          "too_many_inverters": "Number of inverters too high for Device ID.",
+          "invalid_host": "Invalid IP address.",
+          "invalid_tcp_port": "Valid port range is 1 to 65535."
+        }
+      }
     }
   }
 }

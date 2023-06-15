@@ -1,6 +1,3 @@
-import ipaddress
-import re
-
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
@@ -10,16 +7,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import DEFAULT_NAME, DOMAIN, ConfDefaultFlag, ConfDefaultInt, ConfName
-
-
-def host_valid(host):
-    """Return True if hostname or IP address is valid."""
-    try:
-        if ipaddress.ip_address(host).version == (4 or 6):
-            return True
-    except ValueError:
-        disallowed = re.compile(r"[^a-zA-Z\d\-]")
-        return all(x and not disallowed.search(x) for x in host.split("."))
+from .helpers import host_valid
 
 
 @callback
@@ -141,10 +129,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                 CONF_SCAN_INTERVAL: self.config_entry.options.get(
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
-                ConfName.SINGLE_DEVICE_ENTITY: self.config_entry.options.get(
-                    ConfName.SINGLE_DEVICE_ENTITY,
-                    bool(ConfDefaultFlag.SINGLE_DEVICE_ENTITY),
-                ),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
                     ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
                 ),
@@ -167,10 +151,6 @@ class SolaredgeModbusMultiOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_SCAN_INTERVAL,
                         default=user_input[CONF_SCAN_INTERVAL],
                     ): vol.Coerce(int),
-                    vol.Optional(
-                        f"{ConfName.SINGLE_DEVICE_ENTITY}",
-                        default=user_input[ConfName.SINGLE_DEVICE_ENTITY],
-                    ): cv.boolean,
                     vol.Optional(
                         f"{ConfName.KEEP_MODBUS_OPEN}",
                         default=user_input[ConfName.KEEP_MODBUS_OPEN],

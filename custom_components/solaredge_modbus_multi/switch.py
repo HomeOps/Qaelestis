@@ -76,6 +76,13 @@ class SolarEdgeExternalProduction(SolarEdgeSwitchBase):
         """Initialize the sensor."""
 
     @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
+        )
+
+    @property
     def unique_id(self) -> str:
         return f"{self._platform.uid_base}_external_production"
 
@@ -123,6 +130,13 @@ class SolarEdgeNegativeSiteLimit(SolarEdgeSwitchBase):
     def __init__(self, platform, config_entry, coordinator):
         super().__init__(platform, config_entry, coordinator)
         """Initialize the sensor."""
+
+    @property
+    def available(self) -> bool:
+        return (
+            super().available
+            and "E_Lim_Ctl_Mode" in self._platform.decoded_model.keys()
+        )
 
     @property
     def unique_id(self) -> str:

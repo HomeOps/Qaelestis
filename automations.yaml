@@ -47,7 +47,7 @@
   trigger:
   - platform: numeric_state
     entity_id: sensor.main_tank_water_level
-    above: 95
+    above: 93
     for:
       hours: 0
       minutes: 5

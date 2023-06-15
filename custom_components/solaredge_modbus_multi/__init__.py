@@ -1,4 +1,5 @@
 """The SolarEdge Modbus Integration."""
+import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
@@ -16,7 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, ConfDefaultFlag, ConfDefaultInt, ConfName
+from .const import DOMAIN, ConfDefaultFlag, ConfDefaultInt, ConfName, RetrySettings
 from .hub import DataUpdateFailed, HubInitFailed, SolarEdgeModbusMultiHub
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,6 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     solaredge_hub = SolarEdgeModbusMultiHub(
         hass,
+        entry.entry_id,
         entry.data[CONF_NAME],
         entry.data[CONF_HOST],
         entry.data[CONF_PORT],
@@ -54,9 +56,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)),
         entry.options.get(
             ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
-        ),
-        entry.options.get(
-            ConfName.SINGLE_DEVICE_ENTITY, bool(ConfDefaultFlag.SINGLE_DEVICE_ENTITY)
         ),
         entry.options.get(
             ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
@@ -185,10 +184,52 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         try:
             async with async_timeout.timeout(self._hub.coordinator_timeout):
-                return await self._hub.async_refresh_modbus_data()
+                return await self._refresh_modbus_data_with_retry(
+                    ex_type=DataUpdateFailed,
+                    limit=RetrySettings.Limit,
+                    wait_ms=RetrySettings.Time,
+                    wait_ratio=RetrySettings.Ratio,
+                )
 
         except HubInitFailed as e:
             raise UpdateFailed(f"{e}")
 
         except DataUpdateFailed as e:
             raise UpdateFailed(f"{e}")
+
+    async def _refresh_modbus_data_with_retry(
+        self,
+        ex_type=Exception,
+        limit=0,
+        wait_ms=100,
+        wait_ratio=2,
+    ):
+        """
+        Retry refresh until no exception occurs or retries exhaust
+        :param ex_type: retry only if exception is subclass of this type
+        :param limit: maximum number of invocation attempts
+        :param wait_ms: initial wait time after each attempt in milliseconds.
+        :param wait_ratio: increase wait by multiplying by this after each try.
+        :return: result of first successful invocation
+        :raises: last invocation exception if attempts exhausted
+                 or exception is not an instance of ex_type
+        """
+        attempt = 1
+        while True:
+            try:
+                return await self._hub.async_refresh_modbus_data()
+            except Exception as ex:
+                if not isinstance(ex, ex_type):
+                    raise ex
+                if 0 < limit <= attempt:
+                    _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
+                    raise ex
+
+                _LOGGER.debug(f"Failed data refresh attempt #{attempt}", exc_info=ex)
+
+                attempt += 1
+                _LOGGER.debug(
+                    f"Waiting {wait_ms} ms before data refresh attempt #{attempt}"
+                )
+                await asyncio.sleep(wait_ms / 1000)
+                wait_ms *= wait_ratio
