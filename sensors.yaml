@@ -1,6 +1,13 @@
 # Sensors
 - platform: rest
   name: Main Tank Water Level
+  resource: http://192.168.10.73/get_sensors
+  scan_interval: 120
+  timeout: 80
+  value_template: '{{ (value_json.local_s | regex_findall_index("1\":(-?\d+\.?\d+)") | float - 82.3636363636364) | multiply(0.244444444444444) | round(0) }}'
+  unit_of_measurement: "%"
+- platform: rest
+  name: Secondary Tank Water Level
   resource: http://192.168.10.219/get_sensors
   scan_interval: 120
   timeout: 80

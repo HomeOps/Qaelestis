@@ -246,3 +246,20 @@
         data: {}
         target:
           entity_id: cover.guest_bedroom_blinds
+- id: '1688566072264'
+  alias: Master Bedroom Cover opens
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - cover.master_bedroom_blinds
+    to: opening
+  condition: []
+  action:
+  - service: cover.open_cover
+    data: {}
+    target:
+      entity_id:
+      - cover.master_bedroom_east_blinds_cover
+      - cover.master_bedroom_west_blinds_cover
+  mode: single
