@@ -263,3 +263,31 @@
       - cover.master_bedroom_east_blinds_cover
       - cover.master_bedroom_west_blinds_cover
   mode: single
+- id: '1691452744626'
+  alias: Toggle Water Level Switch
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.main_tank_water_level
+    to: unavailable
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  condition: []
+  action:
+  - service: switch.turn_off
+    data: {}
+    target:
+      entity_id: switch.driveway_water_level_switch
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 15
+      milliseconds: 0
+  - service: switch.turn_on
+    data: {}
+    target:
+      entity_id: switch.driveway_water_level_switch
+  mode: single
