@@ -8,5 +8,4 @@ water_tank_low:
   can_acknowledge: true
   skip_first: false
   notifiers:
-    - sms_oscar
-    - sms_hazel
+    - critical

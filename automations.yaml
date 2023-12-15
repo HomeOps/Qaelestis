@@ -267,15 +267,16 @@
   alias: Toggle Water Level Switch
   description: ''
   trigger:
-  - platform: state
-    entity_id:
-    - sensor.main_tank_water_level
-    to: unavailable
+  - platform: time_pattern
+    minutes: /5
+  condition:
+  - condition: state
+    entity_id: binary_sensor.main_water_tank_connection
+    state: 'off'
     for:
       hours: 0
-      minutes: 5
+      minutes: 1
       seconds: 0
-  condition: []
   action:
   - service: switch.turn_off
     data: {}
@@ -290,4 +291,4 @@
     data: {}
     target:
       entity_id: switch.driveway_water_level_switch
-  mode: single
+  mode: restart

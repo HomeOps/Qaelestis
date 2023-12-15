@@ -1,3 +1,13 @@
+- platform: ping
+  host: 192.168.10.73
+  scan_interval: 30
+  count: 3
+  name: Main Water Tank Connection
+- platform: ping
+  host: 192.168.10.219
+  scan_interval: 30
+  count: 3
+  name: Secondary Water Tank Connection
 - platform: template
   sensors:
     power_outage:

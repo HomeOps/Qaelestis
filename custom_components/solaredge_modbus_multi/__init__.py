@@ -1,10 +1,11 @@
-"""The SolarEdge Modbus Integration."""
+"""The SolarEdge Modbus Multi Integration."""
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
 
-import async_timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -24,6 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[str] = [
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SENSOR,
@@ -32,7 +34,7 @@ PLATFORMS: list[str] = [
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up SolarEdge Modbus from a config entry."""
+    """Set up SolarEdge Modbus Muti from a config entry."""
 
     entry_updates: dict[str, Any] = {}
     if CONF_SCAN_INTERVAL in entry.data:
@@ -57,11 +59,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(
             ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
         ),
+        entry.options.get(ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)),
         entry.options.get(
             ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
-        ),
-        entry.options.get(
-            ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
         ),
         entry.options.get(
             ConfName.ADV_STORAGE_CONTROL, bool(ConfDefaultFlag.ADV_STORAGE_CONTROL)
@@ -77,6 +77,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.options.get(ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE),
         entry.options.get(
             ConfName.BATTERY_RATING_ADJUST, ConfDefaultInt.BATTERY_RATING_ADJUST
+        ),
+        entry.options.get(
+            ConfName.BATTERY_ENERGY_RESET_CYCLES,
+            ConfDefaultInt.BATTERY_ENERGY_RESET_CYCLES,
         ),
     )
 
@@ -159,7 +163,7 @@ async def async_remove_config_entry_device(
 
     for device_id in this_device_ids:
         if device_id in known_devices:
-            _LOGGER.error(f"Failed to remove device entry: device {device_id} in use")
+            _LOGGER.error(f"Unable to remove entry: device {device_id} is in use")
             return False
 
     return True
@@ -183,13 +187,16 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
-            async with async_timeout.timeout(self._hub.coordinator_timeout):
-                return await self._refresh_modbus_data_with_retry(
-                    ex_type=DataUpdateFailed,
-                    limit=RetrySettings.Limit,
-                    wait_ms=RetrySettings.Time,
-                    wait_ratio=RetrySettings.Ratio,
-                )
+            while self._hub.has_write:
+                _LOGGER.debug(f"Waiting for write {self._hub.has_write}")
+                await asyncio.sleep(1)
+
+            return await self._refresh_modbus_data_with_retry(
+                ex_type=DataUpdateFailed,
+                limit=RetrySettings.Limit,
+                wait_ms=RetrySettings.Time,
+                wait_ratio=RetrySettings.Ratio,
+            )
 
         except HubInitFailed as e:
             raise UpdateFailed(f"{e}")
@@ -213,11 +220,13 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
         :return: result of first successful invocation
         :raises: last invocation exception if attempts exhausted
                  or exception is not an instance of ex_type
+        Credit: https://gist.github.com/davidohana/c0518ff6a6b95139e905c8a8caef9995
         """
         attempt = 1
         while True:
             try:
-                return await self._hub.async_refresh_modbus_data()
+                async with asyncio.timeout(self._hub.coordinator_timeout):
+                    return await self._hub.async_refresh_modbus_data()
             except Exception as ex:
                 if not isinstance(ex, ex_type):
                     raise ex
@@ -225,11 +234,11 @@ class SolarEdgeCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug(f"No more data refresh attempts (maximum {limit})")
                     raise ex
 
-                _LOGGER.debug(f"Failed data refresh attempt #{attempt}", exc_info=ex)
+                _LOGGER.debug(f"Failed data refresh attempt {attempt}")
 
                 attempt += 1
                 _LOGGER.debug(
-                    f"Waiting {wait_ms} ms before data refresh attempt #{attempt}"
+                    f"Waiting {wait_ms} ms before data refresh attempt {attempt}"
                 )
                 await asyncio.sleep(wait_ms / 1000)
                 wait_ms *= wait_ratio

@@ -10,3 +10,11 @@
     - service: sms
       data:
         target: !secret sms_hazel
+- platform: group
+  name: critical
+  services:
+    - service: sms_oscar
+    - service: mobile_app_oscar_phone
+    - service: sms_hazel
+    - service: mobile_app_hazel_phone
+    

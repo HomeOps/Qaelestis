@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import ipaddress
-import re
 import struct
+
+from .const import DOMAIN_REGEX
 
 
 def scale_factor(value: int, sf: int):
@@ -11,7 +14,10 @@ def scale_factor(value: int, sf: int):
 
 
 def float_to_hex(f):
-    return hex(struct.unpack("<I", struct.pack("<f", f))[0])
+    try:
+        return hex(struct.unpack("<I", struct.pack("<f", f))[0])
+    except struct.error as e:
+        raise TypeError(e)
 
 
 def parse_modbus_string(s: str) -> str:
@@ -41,6 +47,6 @@ def host_valid(host):
     try:
         if ipaddress.ip_address(host).version == (4 or 6):
             return True
+
     except ValueError:
-        disallowed = re.compile(r"[^a-zA-Z\d\-]")
-        return all(x and not disallowed.search(x) for x in host.split("."))
+        return DOMAIN_REGEX.match(host)

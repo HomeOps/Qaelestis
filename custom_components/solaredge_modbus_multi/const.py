@@ -1,3 +1,7 @@
+"""Constants used by SolarEdge Modbus Multi components."""
+from __future__ import annotations
+
+import re
 import sys
 from enum import IntEnum
 from typing import Final
@@ -23,40 +27,81 @@ DEFAULT_NAME = "SolarEdge"
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
 ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
+# from voluptuous/validators.py
+DOMAIN_REGEX = re.compile(
+    # start anchor, because fullmatch is not available in python 2.7
+    "(?:"
+    # domain
+    r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
+    r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)"
+    # end anchor, because fullmatch is not available in python 2.7
+    r")\Z",
+    re.IGNORECASE,
+)
+
 
 class RetrySettings(IntEnum):
     """Retry settings when opening a connection to the inverter fails."""
 
     Time = 800  # first attempt in milliseconds
-    Ratio = 2  # time multiplier between each attempt
-    Limit = 4  # number of attempts before failing
+    Ratio = 3  # time multiplier between each attempt
+    Limit = 5  # number of attempts before failing
+
+
+class ModbusDefaults(IntEnum):
+    """Values to pass to pymodbus"""
+
+    """
+        ReconnectDelay doubles automatically with each unsuccessful connect, from
+        ReconnectDelay to ReconnectDelayMax.
+        Set `ReconnectDelay = 0` to avoid automatic reconnection.
+        Disabled because it didn't work properly with HA Async in PR#360.
+    """
+
+    Timeout = 3  # Timeout for a request, in seconds.
+    ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
+    ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
+
+
+class SolarEdgeTimeouts(IntEnum):
+    """Timeouts in milliseconds."""
+
+    Inverter = 8400
+    Device = 1200
+    Init = 1200
 
 
 class BatteryLimit(IntEnum):
     """Configure battery limits for input and display validation."""
 
     Vmin = 0  # volts
-    Vmax = 600  # volts
+    Vmax = 1000  # volts
     Amin = -200  # amps
     Amax = 200  # amps
     Tmax = 100  # degrees C
     Tmin = -30  # degrees C
-    ChargeMax = 50000  # watts
-    DischargeMax = 50000  # watts
+    ChargeMax = 1000000  # watts
+    DischargeMax = 1000000  # watts
 
 
 class ConfDefaultInt(IntEnum):
+    """Defaults for options that are integers."""
+
     SCAN_INTERVAL = 300
     PORT = 1502
     NUMBER_INVERTERS = 1
     DEVICE_ID = 1
-    SLEEP_AFTER_WRITE = 3
+    SLEEP_AFTER_WRITE = 0
     BATTERY_RATING_ADJUST = 0
+    BATTERY_ENERGY_RESET_CYCLES = 0
 
 
 class ConfDefaultFlag(IntEnum):
+    """Defaults for options that are booleans."""
+
     DETECT_METERS = 1
     DETECT_BATTERIES = 0
+    DETECT_EXTRAS = 1
     KEEP_MODBUS_OPEN = 0
     ADV_PWR_CONTROL = 0
     ADV_STORAGE_CONTROL = 0
@@ -69,6 +114,7 @@ class ConfName(StrEnum):
     DEVICE_ID = "device_id"
     DETECT_METERS = "detect_meters"
     DETECT_BATTERIES = "detect_batteries"
+    DETECT_EXTRAS = "detect_extras"
     KEEP_MODBUS_OPEN = "keep_modbus_open"
     ADV_PWR_CONTROL = "advanced_power_control"
     ADV_STORAGE_CONTROL = "adv_storage_control"
@@ -76,6 +122,7 @@ class ConfName(StrEnum):
     ALLOW_BATTERY_ENERGY_RESET = "allow_battery_energy_reset"
     SLEEP_AFTER_WRITE = "sleep_after_write"
     BATTERY_RATING_ADJUST = "battery_rating_adjust"
+    BATTERY_ENERGY_RESET_CYCLES = "battery_energy_reset_cycles"
 
 
 class SunSpecAccum(IntEnum):
