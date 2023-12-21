@@ -292,3 +292,34 @@
     target:
       entity_id: switch.driveway_water_level_switch
   mode: restart
+- id: '1703184872764'
+  alias: Master Bedroom Blinds Mirror to West-East
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - cover.master_bedroom_blinds
+    attribute: current_position
+  condition: []
+  action:
+  - service: cover.set_cover_position
+    data:
+      position: '{{ state_attr(''cover.master_bedroom_blinds'', ''current_position'')
+        }}'
+    target:
+      entity_id:
+      - cover.master_bedroom_east_blinds_cover
+      - cover.master_bedroom_west_blinds_cover
+  mode: single
+- id: '1703187404595'
+  alias: Motion blinds polling automation
+  description: ''
+  trigger:
+  - platform: time_pattern
+    seconds: /30
+  action:
+  - service: homeassistant.update_entity
+    data: {}
+    target:
+      entity_id: cover.master_bedroom_blinds
+  mode: single
