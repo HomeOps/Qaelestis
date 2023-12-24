@@ -4,24 +4,16 @@
   scan_interval: 30
   timeout: 5
   value_template: >
-    {% if value_json.local_s is defined %}
-      {{ (value_json.local_s | regex_findall_index("1\":(-?\d+\.?\d+)") | float - 82.3636363636364) | multiply(0.244444444444444) | round(0) }}
-    {% else %}
-      {{ trigger.from_state.state }}
-    {% endif %}
+    {{ (value_json.local_s | regex_findall_index("1\":(-?\d+\.?\d+)") | float - 82.3636363636364) | multiply(0.244444444444444) | round(0) }}
   unit_of_measurement: "%"
 - platform: rest
-  name: Secondary Tank Water Level
+  name: Underground Water Tank Pressure
   resource: http://192.168.10.219/get_sensors
   scan_interval: 30
   timeout: 80
   value_template: >
-    {% if value_json.local_s is defined %}
-      {{ (value_json.local_s | regex_findall_index("1\":(-?\d+\.?\d+)") | float - 82.3636363636364) | multiply(0.244444444444444) | round(0) }}
-    {% else %}
-      {{ states('sensor.secondary_tank_water_level') }}
-    {% endif %}
-  unit_of_measurement: "%"
+    {{ (value_json.local_s | regex_findall_index("1\":(-?\d+\.?\d+)") | float) | round(0) }}
+  unit_of_measurement: "hPa"
 - platform: template
   sensors:
     failed_zwave:
