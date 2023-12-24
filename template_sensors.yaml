@@ -1,1 +1,8 @@
-
+- name: Aboveground Water Level
+  unit_of_measurement: '%'
+  state: >
+    {% if states('sensor.main_tank_water_level') not in ['unknown', 'unavailable'] %}
+      {{ states('sensor.main_tank_water_level') }}
+    {% else %}
+      {{ states('sensor.aboveground_water_level') }}
+    {% endif %}
