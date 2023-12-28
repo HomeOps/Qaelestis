@@ -263,35 +263,6 @@
       - cover.master_bedroom_east_blinds_cover
       - cover.master_bedroom_west_blinds_cover
   mode: single
-- id: '1691452744626'
-  alias: Toggle Water Level Switch
-  description: ''
-  trigger:
-  - platform: time_pattern
-    minutes: /5
-  condition:
-  - condition: state
-    entity_id: binary_sensor.main_water_tank_connection
-    state: 'off'
-    for:
-      hours: 0
-      minutes: 1
-      seconds: 0
-  action:
-  - service: switch.turn_off
-    data: {}
-    target:
-      entity_id: switch.driveway_water_level_switch
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: 15
-      milliseconds: 0
-  - service: switch.turn_on
-    data: {}
-    target:
-      entity_id: switch.driveway_water_level_switch
-  mode: restart
 - id: '1703184872764'
   alias: Master Bedroom Blinds Mirror to West-East
   description: ''
