@@ -294,3 +294,18 @@
     target:
       entity_id: cover.master_bedroom_blinds
   mode: single
+- id: '1703725626703'
+  alias: Turn on south driveway lights on camera detection
+  description: ''
+  use_blueprint:
+    path: Blackshome/sensor-light.yaml
+    input:
+      motion_trigger:
+      - binary_sensor.south_east_person_detected
+      - binary_sensor.south_east_vehicle_detected
+      light_switch:
+        entity_id:
+        - switch.driveway_east_lights
+        - light.driveway_south_lights
+      include_sun: sun_enabled
+      include_night_lights: night_lights_enabled
