@@ -20,7 +20,7 @@
   name: Main Tank Water Level Sensor Distance Max
   entity_id: sensor.main_tank_water_level_sensor_distance
   state_characteristic: value_max
-  sampling_size: 20
+  #sampling_size: 20
   max_age:
     minutes: 45
 - platform: template
