@@ -9,7 +9,7 @@
 - name: Aboveground Water Tank Level By Distance
   unit_of_measurement: '%'
   state: >
-    {{ ((255.00 - (states('sensor.main_tank_water_level_sensor_distance') | float))/245.00) | multiply(100.00) | round(2) }}
+    {{ ((255.00 - (states('sensor.main_tank_water_level_sensor_distance_max') | float))/245.00) | multiply(100.00) | round(2) }}
 - name: Underground Water Tank Level
   unit_of_measurement: '%'
   state: >

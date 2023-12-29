@@ -16,6 +16,13 @@
   value_template: >
     {{ (value_json.local_s | regex_findall_index("1\":(-?\d+\.?\d+)") | float) | round(0) }}
   unit_of_measurement: "hPa"
+- platform: statistics
+  name: Main Tank Water Level Sensor Distance Max
+  entity_id: sensor.main_tank_water_level_sensor_distance
+  state_characteristic: value_max
+  sampling_size: 20
+  max_age:
+    minutes: 45
 - platform: template
   sensors:
     failed_zwave:
