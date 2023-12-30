@@ -6,9 +6,6 @@ default_config:
 tts:
   - platform: google_translate
 
-#sms:
-#  device: /dev/ttyUSB0
-
 group: !include groups.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml

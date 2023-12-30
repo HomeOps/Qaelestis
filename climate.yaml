@@ -1,10 +1,10 @@
-- platform: ccm15
-  name: ac-cntr1
-  host: !secret ccm15_01
-  port: 80
-  scan_interval: 10
-- platform: ccm15
-  name: ac-cntr2
-  host: !secret ccm15_02
-  port: 80
-  scan_interval: 10
+#- platform: ccm15
+#  name: ac-cntr1
+#  host: !secret ccm15_01
+#  port: 80
+#  scan_interval: 10
+#- platform: ccm15
+#  name: ac-cntr2
+#  host: !secret ccm15_02
+#  port: 80
+#  scan_interval: 10

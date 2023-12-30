@@ -1,8 +1,0 @@
-{
-    "domain": "ccm15",
-    "name": "ccm15",
-    "documentation": "https://github.com/kylinfedora/home-assistant-mideaccm",
-    "dependencies": [],
-    "version": "v1.2",
-    "codeowners": []
-  }
