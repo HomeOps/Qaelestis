@@ -336,3 +336,18 @@
     service: switch.turn_off
     entity_id: switch.pool_privacy
   mode: single
+- id: '1703974346853'
+  alias: Turn Pool Pump if Person detected
+  description: ''
+  use_blueprint:
+    path: Blackshome/sensor-light.yaml
+    input:
+      motion_trigger:
+      - binary_sensor.south_west_person_detected
+      light_switch:
+        entity_id: switch.pool_waterfall
+      time_delay: 15
+      after_time: '16:05:00'
+      before_time: 09:30:00
+      motion_bypass_lights_on:
+      - switch.pool_pentair_pump
