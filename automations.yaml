@@ -104,7 +104,7 @@
       entity_id: light.pantry_lights
   mode: single
 - id: '1681787559667'
-  alias: Motion Sensor Inactivity Master Bedroom
+  alias: 'Master Bedroom Sensor Inactivity '
   description: ''
   use_blueprint:
     path: Oscar_Calvo/motion-sensor-inactivity-automation.yaml
@@ -119,7 +119,7 @@
       climate_entity: climate.master_bedroom
       sun_condition: above_horizon
 - id: '1681787701102'
-  alias: Motion Sensor Inactivity Den
+  alias: Den Motion Inactivity
   description: ''
   use_blueprint:
     path: Oscar_Calvo/motion-sensor-inactivity-automation.yaml
@@ -213,7 +213,7 @@
         target:
           entity_id: cover.master_bedroom_blinds
 - id: '1683676341841'
-  alias: South Bedroom Blinds
+  alias: South Bedroom Blinds E
   description: ''
   use_blueprint:
     path: kpine/ge_double.yaml
@@ -228,7 +228,7 @@
         data: {}
         target:
           entity_id: cover.south_bedroom_blinds
-      device: 80a3e9cf2f466d5c6c8da4959fec5b4e
+      device: 98a2c1e36af7d76d6da270cbb054ba8e
 - id: '1685075877837'
   alias: Guest Bedroom Blinds
   description: ''
@@ -351,3 +351,180 @@
       before_time: 09:30:00
       motion_bypass_lights_on:
       - switch.pool_pentair_pump
+- id: '1705371577961'
+  alias: Perimiter Proximity Warning
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.external_perimeter_person_motion
+    to: 'on'
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_night
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_away
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_vacation
+  action:
+  - service: script.1705370629380
+    metadata: {}
+    data: {}
+  mode: single
+- id: '1707586791523'
+  alias: Den Blinds N
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: 7e954798e14d48759e1eaf35ae49d372
+      double_tap_on:
+      - service: cover.open_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.den_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.den_blinds
+- id: '1707586847672'
+  alias: Deb Blinds S
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: 07209d9dabe78473c229d4757316f0d6
+      double_tap_on:
+      - service: cover.open_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.den_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.den_blinds
+- id: '1707587063708'
+  alias: South Bedroom Blinds W
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: 227d1d7456d588f9216ece746314f17a
+      double_tap_on:
+      - service: cover.open_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.south_bedroom_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.south_bedroom_blinds
+- id: '1707587286848'
+  alias: Central Bedroom Blinds E
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: 734fdd12570835ae85b07890b5814498
+      double_tap_on:
+      - service: cover.open_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.central_bedroom_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        metadata: {}
+        data: {}
+        target:
+          device_id: 11beea31cc8664e246dd74837feeed85
+- id: '1707587363809'
+  alias: Central Bedroom Blinds W
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: 38ae76dee4b64be551b59c610e63ca11
+      double_tap_on:
+      - service: cover.open_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.central_bedroom_blinds
+      double_tap_off:
+      - service: cover.close_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.central_bedroom_blinds
+- id: '1708827842631'
+  alias: Lobby Sensor Inactivity
+  description: ''
+  use_blueprint:
+    path: Oscar_Calvo/motion-sensor-inactivity-automation.yaml
+    input:
+      motion_sensor_entities:
+      - binary_sensor.lobby_sensor_motion_detection
+      climate_entity: climate.lobby
+      light_entities:
+      - light.lobby_lights
+      sun_condition: ignore
+- id: '1708827984433'
+  alias: Guest Bathroom Inactivity
+  description: ''
+  use_blueprint:
+    path: Oscar_Calvo/motion-sensor-inactivity-automation.yaml
+    input:
+      motion_sensor_entities:
+      - binary_sensor.guest_bathroom_motion_detection
+      light_entities:
+      - light.guest_bathroom_lights
+      - light.guest_bathroom_shower_lights
+      - light.in_wall_paddle_dimmer_qfsw_500s_14
+      climate_entity: climate.guest_bathroom
+      sun_condition: ignore
+      inactivity_hours: 0.25
+- id: '1709409384420'
+  alias: Kitchen Sensor Inactivity
+  description: ''
+  use_blueprint:
+    path: Oscar_Calvo/motion-sensor-inactivity-automation.yaml
+    input:
+      motion_sensor_entities:
+      - binary_sensor.kitchen_motion_detection
+      light_entities:
+      - light.kitchen_island
+      - light.in_wall_paddle_dimmer_qfsw_500s_18
+      - light.in_wall_paddle_dimmer_qfsw_500s_2
+      climate_entity: climate.kitchen
+      sun_condition: ignore
+- id: '1709409552723'
+  alias: Downstairs Sensor Inactivity
+  description: ''
+  use_blueprint:
+    path: Oscar_Calvo/motion-sensor-inactivity-automation.yaml
+    input:
+      motion_sensor_entities:
+      - binary_sensor.downstairs_sensor_motion
+      light_entities:
+      - light.living_room_north_lights
+      - light.in_wall_paddle_dimmer_qfsw_500s_4
+      - light.hallway_north_lights
+      - light.in_wall_paddle_dimmer_qfsw_500s_19
+      - light.dining_room_lights
+      climate_entity: climate.living_room
+      sun_condition: ignore

@@ -28,6 +28,7 @@ http:
 alarm_control_panel:
   - platform: manual
     name: Home Alarm
+    code: 2003
 
 ics_calendar:
   calendars:

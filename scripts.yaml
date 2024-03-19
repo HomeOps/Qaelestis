@@ -17,3 +17,24 @@ ping_dead_nodes:
     target:
       entity_id: '{{ states.sensor.failed_zwave.state }}'
   mode: single
+'1705370629380':
+  alias: Perimeter Proximity Warning
+  sequence:
+  - service: media_player.volume_set
+    metadata: {}
+    data:
+      volume_level: 1
+    target:
+      entity_id: media_player.gate_doorbell_speaker
+  - service: tts.google_translate_say
+    data:
+      cache: true
+      entity_id: media_player.gate_doorbell_speaker
+      language: es
+      message: Usted esta siendo grabado, si se acerca mas, la alarma se activará.
+        Las autoridades han sido notificadas.
+  - service: notify.critical
+    metadata: {}
+    data:
+      message: Perimeter proximity warning.
+  mode: single
