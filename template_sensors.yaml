@@ -2,7 +2,7 @@
   unit_of_measurement: '%'
   state: >
     {% if states('sensor.aboveground_water_tank_pressure') not in ['unknown', 'unavailable'] %}
-      {{ (states('sensor.aboveground_water_tank_pressure') | float - 82.3636363636364) | multiply(0.244444444444444) | round(0) }}
+      {{ (states('sensor.aboveground_water_tank_pressure') | float - 82.3636363636364) | multiply(0.488888888888888) | round(0) }}
     {% else %}
       {{ states('sensor.aboveground_water_tank_level') }}
     {% endif %}
