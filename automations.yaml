@@ -528,3 +528,53 @@
       - light.dining_room_lights
       climate_entity: climate.living_room
       sun_condition: ignore
+- id: '1710973809786'
+  alias: Alarm when Triggered
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - alarm_control_panel.home_alarm
+    to: triggered
+  condition: []
+  action:
+  - service: script.alarm
+    metadata: {}
+    data: {}
+  - repeat:
+      sequence:
+      - service: script.alarm
+        metadata: {}
+        data: {}
+      until:
+      - condition: state
+        entity_id: alarm_control_panel.home_alarm
+        state: disarmed
+  mode: single
+- id: '1710974359705'
+  alias: Trigger Alarm if perimeter breached
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.perimeter_contacts
+    from: 'on'
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_away
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_night
+    - condition: state
+      entity_id: alarm_control_panel.home_alarm
+      state: armed_vacation
+  action:
+  - service: alarm_control_panel.alarm_trigger
+    target:
+      entity_id: alarm_control_panel.home_alarm
+    data:
+      code: '2003'
+  mode: single

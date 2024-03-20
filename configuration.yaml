@@ -29,6 +29,7 @@ alarm_control_panel:
   - platform: manual
     name: Home Alarm
     code: 2003
+    code_arm_required: false
 
 ics_calendar:
   calendars:
