@@ -23,7 +23,7 @@ ping_dead_nodes:
   - service: media_player.volume_set
     metadata: {}
     data:
-      volume_level: 1
+      volume_level: 0.9
     target:
       entity_id: media_player.gate_doorbell_speaker
   - service: tts.google_translate_say
