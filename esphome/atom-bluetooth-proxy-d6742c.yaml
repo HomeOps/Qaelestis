@@ -1,0 +1,17 @@
+substitutions:
+  name: "patio-bluetooth-proxy"
+  friendly_name: Patio Bluetooth Proxy
+packages:
+  esphome.bluetooth-proxy: github://esphome/firmware/bluetooth-proxy/m5stack-atom-lite.yaml@main
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+  friendly_name: ${friendly_name}
+api:
+  encryption:
+    key: BocRUpWIiQ6Pr5kmIQLBncor2wAxfI71NxTkDk68vgA=
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
