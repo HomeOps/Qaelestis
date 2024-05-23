@@ -1,24 +1,10 @@
 """Constants used by SolarEdge Modbus Multi components."""
+
 from __future__ import annotations
 
 import re
-import sys
-from enum import IntEnum
+from enum import Flag, IntEnum, StrEnum
 from typing import Final
-
-if sys.version_info.minor >= 11:
-    # Needs Python 3.11
-    from enum import StrEnum
-else:
-    try:
-        from homeassistant.backports.enum import StrEnum
-
-    except ImportError:
-        from enum import Enum
-
-        class StrEnum(str, Enum):
-            pass
-
 
 DOMAIN = "solaredge_modbus_multi"
 DEFAULT_NAME = "SolarEdge"
@@ -34,6 +20,8 @@ DOMAIN_REGEX = re.compile(
     # domain
     r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
     r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)"
+    # host name only
+    r"|(?:^[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)"
     # end anchor, because fullmatch is not available in python 2.7
     r")\Z",
     re.IGNORECASE,
@@ -61,6 +49,12 @@ class ModbusDefaults(IntEnum):
     Timeout = 3  # Timeout for a request, in seconds.
     ReconnectDelay = 0  # Minimum in seconds.milliseconds before reconnecting.
     ReconnectDelayMax = 3.0  # Maximum in seconds.milliseconds before reconnecting.
+
+
+class ModbusFlags(Flag):
+    """Values to pass to pymodbus"""
+
+    RetryOnEmpty = False  # Retry on empty response.
 
 
 class SolarEdgeTimeouts(IntEnum):
@@ -139,6 +133,20 @@ class SunSpecNotImpl(IntEnum):
     UINT32 = 0xFFFFFFFF
     FLOAT32 = 0x7FC00000
 
+
+# Battery ID and modbus starting address
+BATTERY_REG_BASE = {
+    1: 57600,
+    2: 57856,
+    3: 58368,
+}
+
+# Meter ID and modbus starting address
+METER_REG_BASE = {
+    1: 40121,
+    2: 40295,
+    3: 40469,
+}
 
 SUNSPEC_SF_RANGE = [
     -10,
@@ -321,6 +329,14 @@ MMPPT_EVENTS = {
     20: "TEST_FAILED",
     21: "INPUT_UNDER_VOLTAGE",
     22: "INPUT_OVER_CURRENT",
+}
+
+REACTIVE_POWER_CONFIG = {
+    0: "Fixed CosPhi",
+    1: "Fixed Q",
+    2: "CosPhi(P)",
+    3: "Q(U) + Q(P)",
+    4: "RRCR",
 }
 
 STORAGE_CONTROL_MODE = {
