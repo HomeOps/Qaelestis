@@ -2,7 +2,11 @@
   unit_of_measurement: '%'
   state: >
     {% if states('sensor.aboveground_water_tank_pressure') not in ['unknown', 'unavailable'] %}
-      {{ (states('sensor.aboveground_water_tank_pressure') | float - 82.3636363636364) | multiply(0.488888888888888) | round(0) }}
+      {% set p = states('sensor.aboveground_water_tank_pressure') | float %}
+      {% set a = (-1/1500) | float %}
+      {% set b = ((10.0/24.0) + 0.15) | float %}
+      {% set c = 0 | float %}
+      {{ ((p | multiply(p) | multiply(a)) + (p | multiply(b)) + c) | round(2) }}
     {% else %}
       {{ states('sensor.aboveground_water_tank_level') }}
     {% endif %}
@@ -14,7 +18,7 @@
   unit_of_measurement: '%'
   state: >
     {% if states('sensor.underground_water_tank_pressure') not in ['unknown', 'unavailable'] %}
-      {{ (states('sensor.underground_water_tank_pressure') | float - 82.3636363636364) | multiply(0.244444444444444) | round(0) }}
+      {{ (states('sensor.underground_water_tank_pressure') | float - 82.3636363636364) | multiply(0.244444444444444) | round(2) }}
     {% else %}
       {{ states('sensor.underground_water_tank_level') }}
     {% endif %}
