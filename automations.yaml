@@ -319,12 +319,7 @@
   action:
   - service: switch.turn_{{ trigger.to_state.state }}
     entity_id:
-    - switch.south_east_privacy_mode
-    - switch.south_west_privacy_mode
-    - switch.terrace_north_privacy_mode
-    - switch.terrace_south_privacy_mode
-    - switch.north_west_privacy_mode
-    - switch.west_side_privacy_mode
+    - switch.cameras_pool_privacy
   mode: single
 - id: '1703810407568'
   alias: Turn off pool privacy at 6 AM

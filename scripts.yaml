@@ -23,7 +23,7 @@ ping_dead_nodes:
   - service: media_player.volume_set
     metadata: {}
     data:
-      volume_level: 0.9
+      volume_level: 0.8
     target:
       entity_id: media_player.gate_doorbell_speaker
   - service: tts.google_translate_say
@@ -33,6 +33,19 @@ ping_dead_nodes:
       language: es
       message: Usted esta siendo grabado, si se acerca mas, la alarma se activará.
         Las autoridades han sido notificadas.
+  - service: media_player.volume_set
+    metadata: {}
+    data:
+      volume_level: 0.8
+    target:
+      entity_id: media_player.north_east_speaker
+  - service: tts.google_translate_say
+    data:
+      cache: true
+      language: es
+      message: Usted esta siendo grabado, si se acerca mas, la alarma se activará.
+        Las autoridades han sido notificadas.
+      entity_id: media_player.north_east_speaker
   - service: notify.critical
     metadata: {}
     data:
