@@ -573,3 +573,20 @@
     data:
       code: '2003'
   mode: single
+- id: '1716923405151'
+  alias: Remote 01 Turn On
+  description: ''
+  trigger:
+  - device_id: c6c9de69a84f5ebfa469d489c55c8a33
+    domain: zha
+    platform: device
+    type: remote_button_short_press
+    subtype: turn_on
+  condition: []
+  action:
+  - service: cover.close_cover
+    target:
+      entity_id:
+      - cover.gate_opener
+    data: {}
+  mode: single
