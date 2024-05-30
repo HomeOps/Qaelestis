@@ -325,10 +325,14 @@
   alias: Turn off pool privacy at 6 AM
   description: Turn off pool privacy at 6 AM
   trigger:
-    platform: time
+  - platform: time
     at: 06:00:00
+  - platform: state
+    entity_id:
+    - alarm_control_panel.home_alarm
+    to:
   action:
-    service: switch.turn_off
+  - service: switch.turn_off
     entity_id: switch.pool_privacy
   mode: single
 - id: '1703974346853'
@@ -553,7 +557,11 @@
   - platform: state
     entity_id:
     - binary_sensor.perimeter_contacts
-    from: 'on'
+    to: 'on'
+  - platform: state
+    entity_id:
+    - binary_sensor.internal_perimeter_person_detected
+    to: 'on'
   condition:
   - condition: or
     conditions:

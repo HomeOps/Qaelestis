@@ -54,49 +54,105 @@ ping_dead_nodes:
 alarm:
   alias: Alarm
   sequence:
-  - device_id: ac339a485606fe31844f3e0b8c539d17
-    domain: button
-    entity_id: fff7ccfd0397c45ce038ddcf5bf22481
-    type: press
-  - device_id: fb8577b3ddbef9d7e590a012a94142d9
-    domain: button
-    entity_id: b8870e684d8527d08ee8c6383400c619
-    type: press
-  - device_id: 35318003d41c7d232773885db157e0ab
-    domain: button
-    entity_id: 373ba9673d7a9b0344b6eeae890aa5ae
-    type: press
-  - service: tts.speak
+  - parallel:
+    - service: notify.critical
+      metadata: {}
+      data:
+        message: Alarm activated.
+    - device_id: 35318003d41c7d232773885db157e0ab
+      domain: button
+      entity_id: 373ba9673d7a9b0344b6eeae890aa5ae
+      type: press
+    - device_id: fb8577b3ddbef9d7e590a012a94142d9
+      domain: button
+      entity_id: b8870e684d8527d08ee8c6383400c619
+      type: press
+    - device_id: ac339a485606fe31844f3e0b8c539d17
+      domain: button
+      entity_id: fff7ccfd0397c45ce038ddcf5bf22481
+      type: press
+    - service: tts.speak
+      metadata: {}
+      data:
+        cache: true
+        media_player_entity_id: media_player.terrace_south_speaker
+        message: Alarm activated. Intruder detected.
+      target:
+        entity_id: tts.home_assistant_cloud
+    - service: tts.speak
+      metadata: {}
+      data:
+        cache: true
+        message: 'Alam activated. Intruder detected. '
+        media_player_entity_id: media_player.terrace_north_speaker
+      target:
+        entity_id: tts.home_assistant_cloud
+    - service: tts.speak
+      metadata: {}
+      data:
+        cache: true
+        media_player_entity_id: media_player.server_room_speaker
+        message: 'Alam activated. Intruder detected. '
+      target:
+        entity_id: tts.home_assistant_cloud
+    - service: tts.speak
+      metadata: {}
+      data:
+        cache: true
+        media_player_entity_id: media_player.attic_speaker
+        message: 'Alam activated. Intruder detected. '
+      target:
+        entity_id: tts.home_assistant_cloud
+  - variables:
+      alarm_msg_en: The alarm has been activated. Please follow instrutions.
+      alarm_msg_es: La alarma ha sido activada. Por favor siga las instrucciones.
+      speaker_vol: 0.85
+  - service: media_player.volume_set
     metadata: {}
     data:
-      cache: true
-      media_player_entity_id: media_player.terrace_south_speaker
-      message: Alarm activated. Intruder detected.
+      volume_level: '{{ speaker_vol }}'
     target:
-      entity_id: tts.home_assistant_cloud
-  - service: tts.speak
-    metadata: {}
+      entity_id: media_player.living_room_speakers
+  - service: tts.cloud_say
     data:
       cache: true
-      media_player_entity_id: media_player.north_terrace_speaker
-      message: 'Alam activated. Intruder detected. '
-    target:
-      entity_id: tts.home_assistant_cloud
-  - service: tts.speak
-    metadata: {}
+      entity_id: media_player.living_room_speakers
+      message: '{{ alarm_msg_en }}'
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - service: tts.cloud_say
     data:
       cache: true
-      media_player_entity_id: media_player.server_room_speaker
-      message: 'Alam activated. Intruder detected. '
-    target:
-      entity_id: tts.home_assistant_cloud
-  - service: tts.speak
+      entity_id: media_player.living_room_speakers
+      message: '{{ alarm_msg_es }}'
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - service: media_player.volume_set
     metadata: {}
     data:
-      cache: true
-      media_player_entity_id: media_player.attic_speaker
-      message: 'Alam activated. Intruder detected. '
+      volume_level: '{{ speaker_vol }}'
     target:
-      entity_id: tts.home_assistant_cloud
+      entity_id: media_player.terrace_speakers
+  - service: tts.cloud_say
+    data:
+      cache: true
+      entity_id: media_player.terrace_speakers
+      message: '{{ alarm_msg_en }}'
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - service: tts.cloud_say
+    data:
+      cache: true
+      entity_id: media_player.terrace_speakers
+      message: '{{ alarm_msg_es }}'
   mode: single
   icon: mdi:alarm-light-outline
