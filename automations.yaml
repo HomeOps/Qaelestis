@@ -598,3 +598,22 @@
       - cover.gate_opener
     data: {}
   mode: single
+- id: '1734971659047'
+  alias: Central Bedroom Blinds
+  description: ''
+  use_blueprint:
+    path: kpine/ge_double.yaml
+    input:
+      device: eb1a9dacc89ff98be6671f1c2e26b4cb
+      double_tap_on:
+      - action: cover.open_cover
+        metadata: {}
+        data: {}
+        target:
+          device_id: 11beea31cc8664e246dd74837feeed85
+      double_tap_off:
+      - action: cover.close_cover
+        metadata: {}
+        data: {}
+        target:
+          device_id: 11beea31cc8664e246dd74837feeed85
