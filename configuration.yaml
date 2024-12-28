@@ -31,8 +31,3 @@ alarm_control_panel:
     code: 2003
     code_arm_required: false
 
-ics_calendar:
-  calendars:
-    - name: "AirBnB"
-      url: !secret airbnb_cal
-
