@@ -76,17 +76,18 @@
 - id: '1679529808488'
   alias: Turn pantry lights on when door opens
   description: ''
-  trigger:
-  - platform: state
-    entity_id:
+  triggers:
+  - entity_id:
     - binary_sensor.pantry_door_sensor_window_door_is_open
     to: 'on'
-  condition: []
-  action:
-  - service: light.turn_on
-    data: {}
+    trigger: state
+    from: 'off'
+  conditions: []
+  actions:
+  - data: {}
     target:
       entity_id: light.pantry_lights
+    action: light.turn_on
   mode: single
 - id: '1679529882466'
   alias: Turn pantry lights off when door closes
@@ -582,17 +583,17 @@
       code: '2003'
   mode: single
 - id: '1716923405151'
-  alias: Remote 01 Turn On
+  alias: Gate Remote Turn On
   description: ''
-  trigger:
+  triggers:
   - device_id: c6c9de69a84f5ebfa469d489c55c8a33
     domain: zha
-    platform: device
     type: remote_button_short_press
     subtype: turn_on
-  condition: []
-  action:
-  - service: cover.close_cover
+    trigger: device
+  conditions: []
+  actions:
+  - action: cover.open_cover
     target:
       entity_id:
       - cover.gate_opener
@@ -617,3 +618,20 @@
         data: {}
         target:
           device_id: 11beea31cc8664e246dd74837feeed85
+- id: '1746027989552'
+  alias: Gate Remote Turn Off
+  description: ''
+  triggers:
+  - device_id: c6c9de69a84f5ebfa469d489c55c8a33
+    domain: zha
+    type: remote_button_short_press
+    subtype: turn_off
+    trigger: device
+  conditions: []
+  actions:
+  - action: cover.close_cover
+    target:
+      entity_id:
+      - cover.gate_opener
+    data: {}
+  mode: single
