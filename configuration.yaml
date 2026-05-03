@@ -14,7 +14,6 @@ alert: !include alerts.yaml
 python_script:
 conversation:
 
-climate: !include climate.yaml
 mqtt: !include mqtt.yaml
 
 http:
