@@ -14,26 +14,30 @@ ping_dead_nodes:
       volume_level: 0.8
     target:
       entity_id: media_player.gate_doorbell_speaker
-  - service: tts.google_translate_say
+  - service: tts.speak
     data:
       cache: true
-      entity_id: media_player.gate_doorbell_speaker
+      media_player_entity_id: media_player.gate_doorbell_speaker
       language: es
       message: Usted esta siendo grabado, si se acerca mas, la alarma se activará.
         Las autoridades han sido notificadas.
+    target:
+      entity_id: tts.google_translate
   - service: media_player.volume_set
     metadata: {}
     data:
       volume_level: 0.8
     target:
       entity_id: media_player.north_east_speaker
-  - service: tts.google_translate_say
+  - service: tts.speak
     data:
       cache: true
       language: es
       message: Usted esta siendo grabado, si se acerca mas, la alarma se activará.
         Las autoridades han sido notificadas.
-      entity_id: media_player.north_east_speaker
+      media_player_entity_id: media_player.north_east_speaker
+    target:
+      entity_id: tts.google_translate
   - service: notify.critical
     metadata: {}
     data:
@@ -101,21 +105,25 @@ alarm:
       volume_level: '{{ speaker_vol }}'
     target:
       entity_id: media_player.living_room_speakers
-  - service: tts.cloud_say
+  - service: tts.speak
     data:
       cache: true
-      entity_id: media_player.living_room_speakers
+      media_player_entity_id: media_player.living_room_speakers
       message: '{{ alarm_msg_en }}'
+    target:
+      entity_id: tts.home_assistant_cloud
   - delay:
       hours: 0
       minutes: 0
       seconds: 5
       milliseconds: 0
-  - service: tts.cloud_say
+  - service: tts.speak
     data:
       cache: true
-      entity_id: media_player.living_room_speakers
+      media_player_entity_id: media_player.living_room_speakers
       message: '{{ alarm_msg_es }}'
+    target:
+      entity_id: tts.home_assistant_cloud
   - delay:
       hours: 0
       minutes: 0
@@ -127,20 +135,24 @@ alarm:
       volume_level: '{{ speaker_vol }}'
     target:
       entity_id: media_player.terrace_speakers
-  - service: tts.cloud_say
+  - service: tts.speak
     data:
       cache: true
-      entity_id: media_player.terrace_speakers
+      media_player_entity_id: media_player.terrace_speakers
       message: '{{ alarm_msg_en }}'
+    target:
+      entity_id: tts.home_assistant_cloud
   - delay:
       hours: 0
       minutes: 0
       seconds: 5
       milliseconds: 0
-  - service: tts.cloud_say
+  - service: tts.speak
     data:
       cache: true
-      entity_id: media_player.terrace_speakers
+      media_player_entity_id: media_player.terrace_speakers
       message: '{{ alarm_msg_es }}'
+    target:
+      entity_id: tts.home_assistant_cloud
   mode: single
   icon: mdi:alarm-light-outline
