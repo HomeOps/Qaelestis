@@ -636,3 +636,35 @@
       - cover.gate_opener
     data: {}
   mode: single
+- id: motion_sensors_auto_heal
+  alias: Motion Sensors Auto-Heal (Default Timeout)
+  description: Heal stuck motion sensors by force-resetting them to off after the
+    timeout
+  triggers:
+  - entity_id:
+    - binary_sensor.stairs_sensor_motion_detection
+    trigger: state
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 240
+    to:
+    - 'on'
+  actions:
+  - data:
+      entity_id: '{{ motion_entity }}'
+      state: 'off'
+      attributes:
+        healed_by: motion_autoheal
+        healed_at: '{{ now() }}'
+        assumed_param3: '{{ default_timeout }}'
+        heal_after_seconds: '{{ heal_after }}'
+    action: python_script.set_state
+  mode: parallel
+  variables:
+    default_timeout: 240
+    heal_margin: 30
+    heal_after: '{{ default_timeout + heal_margin }}'
+    motion_entity: '{{ trigger.entity_id }}'
+    last_changed: '{{ as_timestamp(states[motion_entity].last_changed) }}'
+    now_ts: '{{ as_timestamp(now()) }}'
