@@ -1,20 +1,20 @@
 ping_dead_nodes:
   alias: Ping dead nodes
   sequence:
-  - service: zwave_js.ping
+  - action: zwave_js.ping
     target:
       entity_id: '{{ states.sensor.failed_zwave.state }}'
   mode: single
 '1705370629380':
   alias: Perimeter Proximity Warning
   sequence:
-  - service: media_player.volume_set
+  - action: media_player.volume_set
     metadata: {}
     data:
       volume_level: 0.8
     target:
       entity_id: media_player.gate_doorbell_speaker
-  - service: tts.speak
+  - action: tts.speak
     data:
       cache: true
       media_player_entity_id: media_player.gate_doorbell_speaker
@@ -23,13 +23,13 @@ ping_dead_nodes:
         Las autoridades han sido notificadas.
     target:
       entity_id: tts.google_translate
-  - service: media_player.volume_set
+  - action: media_player.volume_set
     metadata: {}
     data:
       volume_level: 0.8
     target:
       entity_id: media_player.north_east_speaker
-  - service: tts.speak
+  - action: tts.speak
     data:
       cache: true
       language: es
@@ -38,7 +38,7 @@ ping_dead_nodes:
       media_player_entity_id: media_player.north_east_speaker
     target:
       entity_id: tts.google_translate
-  - service: notify.critical
+  - action: notify.critical
     metadata: {}
     data:
       message: Perimeter proximity warning.
@@ -47,7 +47,7 @@ alarm:
   alias: Alarm
   sequence:
   - parallel:
-    - service: notify.critical
+    - action: notify.critical
       metadata: {}
       data:
         message: Alarm activated.
@@ -63,7 +63,7 @@ alarm:
       domain: button
       entity_id: fff7ccfd0397c45ce038ddcf5bf22481
       type: press
-    - service: tts.speak
+    - action: tts.speak
       metadata: {}
       data:
         cache: true
@@ -71,7 +71,7 @@ alarm:
         message: Alarm activated. Intruder detected.
       target:
         entity_id: tts.home_assistant_cloud
-    - service: tts.speak
+    - action: tts.speak
       metadata: {}
       data:
         cache: true
@@ -79,7 +79,7 @@ alarm:
         media_player_entity_id: media_player.terrace_north_speaker
       target:
         entity_id: tts.home_assistant_cloud
-    - service: tts.speak
+    - action: tts.speak
       metadata: {}
       data:
         cache: true
@@ -87,7 +87,7 @@ alarm:
         message: 'Alam activated. Intruder detected. '
       target:
         entity_id: tts.home_assistant_cloud
-    - service: tts.speak
+    - action: tts.speak
       metadata: {}
       data:
         cache: true
@@ -99,13 +99,13 @@ alarm:
       alarm_msg_en: The alarm has been activated. Please follow instrutions.
       alarm_msg_es: La alarma ha sido activada. Por favor siga las instrucciones.
       speaker_vol: 0.85
-  - service: media_player.volume_set
+  - action: media_player.volume_set
     metadata: {}
     data:
       volume_level: '{{ speaker_vol }}'
     target:
       entity_id: media_player.living_room_speakers
-  - service: tts.speak
+  - action: tts.speak
     data:
       cache: true
       media_player_entity_id: media_player.living_room_speakers
@@ -117,7 +117,7 @@ alarm:
       minutes: 0
       seconds: 5
       milliseconds: 0
-  - service: tts.speak
+  - action: tts.speak
     data:
       cache: true
       media_player_entity_id: media_player.living_room_speakers
@@ -129,13 +129,13 @@ alarm:
       minutes: 0
       seconds: 5
       milliseconds: 0
-  - service: media_player.volume_set
+  - action: media_player.volume_set
     metadata: {}
     data:
       volume_level: '{{ speaker_vol }}'
     target:
       entity_id: media_player.terrace_speakers
-  - service: tts.speak
+  - action: tts.speak
     data:
       cache: true
       media_player_entity_id: media_player.terrace_speakers
@@ -147,7 +147,7 @@ alarm:
       minutes: 0
       seconds: 5
       milliseconds: 0
-  - service: tts.speak
+  - action: tts.speak
     data:
       cache: true
       media_player_entity_id: media_player.terrace_speakers
