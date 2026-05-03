@@ -89,7 +89,7 @@
         },
         "error": {
           "invalid_device_id": "L'ID del dispositivo deve essere compreso tra 1 e 247.",
-          "invalid_inverter_count": "Deve essere compreso tra 1 e 32 inverter.",    
+          "invalid_inverter_count": "Deve essere compreso tra 1 e 32 inverter.",
           "invalid_host": "Indirizzo IP non valido.",
           "invalid_tcp_port": "L'intervallo di porte valido è compreso tra 1 e 65535.",
           "invalid_range_format": "L'immissione sembra un intervallo ma è consentito solo un '-' per intervallo.",
@@ -98,6 +98,14 @@
           "already_configured": "L'host e la porta sono già configurati in un altro hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Timeout di controllo del potere dinamico globale",
+      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza dinamica globali."
+    },
+    "detect_timeout_apc": {
+      "title": "Timeout di controllo del potere avanzato",
+      "description": "L'inverter non ha risposto durante la lettura dei dati per i controlli di potenza avanzati."
     }
   }
 }

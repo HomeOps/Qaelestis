@@ -89,7 +89,7 @@
         },
         "error": {
           "invalid_device_id": "Apparaat-ID moet tussen 1 en 247 liggen.",
-          "invalid_inverter_count": "Moet tussen 1 en 32 omvormers zijn.",    
+          "invalid_inverter_count": "Moet tussen 1 en 32 omvormers zijn.",
           "invalid_host": "Ongeldig IP-adres.",
           "invalid_tcp_port": "Geldig poortbereik is 1 tot 65535.",
           "invalid_range_format": "Invoer ziet eruit als een bereik, maar er is slechts één '-' per bereik toegestaan.",
@@ -98,6 +98,14 @@
           "already_configured": "Host en poort zijn al geconfigureerd in een andere hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Global Dynamic Power Control Time -out",
+      "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor Global Dynamic Power Controls."
+    },
+    "detect_timeout_apc": {
+      "title": "Geavanceerde time -out voor stroomregeling",
+      "description": "De omvormer reageerde niet tijdens het lezen van gegevens voor geavanceerde stroomregeling."
     }
   }
 }

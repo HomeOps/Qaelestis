@@ -89,7 +89,7 @@
         },
         "error": {
           "invalid_device_id": "Enhets-ID må være mellom 1 og 247.",
-          "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",    
+          "invalid_inverter_count": "Må være mellom 1 og 32 omformere.",
           "invalid_host": "Ugyldig IP-adresse.",
           "invalid_tcp_port": "Gyldig portområde er 1 til 65535.",
           "invalid_range_format": "Oppføring ser ut som et område, men bare én '-' per område er tillatt.",
@@ -98,6 +98,14 @@
           "already_configured": "Vert og port er allerede konfigurert i en annen hub."
         }
       }
+    },
+    "detect_timeout_gpc": {
+      "title": "Global dynamisk kraftkontroll timeout",
+      "description": "Omformeren svarte ikke mens du leste data for global dynamisk kraftkontroll."
+    },
+    "detect_timeout_apc": {
+      "title": "Avansert timeout for strømkontroll",
+      "description": "Omformeren svarte ikke mens du leste data for avanserte strømkontroller."
     }
   }
 }
