@@ -1,60 +1,61 @@
 - id: letsencrypt_renewal
   alias: Lets encrypt renewal
-  trigger:
-  - platform: time
+  triggers:
+  - trigger: time
     at: 00:00:00
-  action:
-  - service: hassio.addon_restart
+  actions:
+  - action: hassio.addon_restart
     data:
       addon: core_letsencrypt
 - id: '1635711531127'
   alias: Forward SMS
   description: ''
-  trigger:
-  - platform: event
-    event_type: sms.incoming_sms
-  condition: []
-  action:
-  - service: script.notify_sms_oscar
-    data:
-      message: 'From: {{trigger.event.data.phone}}
+  triggers:
+  - trigger: state
+    entity_id: sensor.sms_gateway_last_sms_received
+  conditions: []
+  actions:
+  - data:
+      message: 'From: {{ state_attr(''sensor.sms_gateway_last_sms_received'', ''Number'')
+        }}
 
-        {{trigger.event.data.text}}
+        {{ states(''sensor.sms_gateway_last_sms_received'') }}
 
         '
+    action: notify.sms_oscar
   mode: single
 - id: '1648753452907'
   alias: Reboot every Sunday
   description: ''
-  trigger:
-  - platform: time
+  triggers:
+  - trigger: time
     at: 04:45:00
-  condition:
+  conditions:
   - condition: time
     before: 00:00:00
     weekday:
     - sun
-  action:
+  actions:
   - data:
       message: Reboot
-    service: notify.sms_oscar
-  - service: hassio.host_reboot
+    action: notify.sms_oscar
+  - action: hassio.host_reboot
     data: {}
   mode: single
 - id: '1679363665451'
   alias: Open Pool Valve when Main Tank is full
   description: ''
-  trigger:
-  - platform: numeric_state
+  triggers:
+  - trigger: numeric_state
     entity_id: sensor.main_tank_water_level
     above: 93
     for:
       hours: 0
       minutes: 5
       seconds: 0
-  condition: []
-  action:
-  - service: switch.turn_on
+  conditions: []
+  actions:
+  - action: switch.turn_on
     data: {}
     target:
       entity_id: switch.pool_water_supply
@@ -62,13 +63,13 @@
 - id: '1679364103684'
   alias: Close Pool Valve when Main Tank is low
   description: ''
-  trigger:
-  - platform: numeric_state
+  triggers:
+  - trigger: numeric_state
     entity_id: sensor.main_tank_water_level
     below: 90
-  condition: []
-  action:
-  - service: switch.turn_off
+  conditions: []
+  actions:
+  - action: switch.turn_off
     data: {}
     target:
       entity_id: switch.pool_water_supply
@@ -92,14 +93,14 @@
 - id: '1679529882466'
   alias: Turn pantry lights off when door closes
   description: ''
-  trigger:
-  - platform: state
+  triggers:
+  - trigger: state
     entity_id:
     - binary_sensor.pantry_door_sensor_window_door_is_open
     to: 'off'
-  condition: []
-  action:
-  - service: light.turn_off
+  conditions: []
+  actions:
+  - action: light.turn_off
     data: {}
     target:
       entity_id: light.pantry_lights
@@ -136,23 +137,23 @@
 - id: '1682191177071'
   alias: Zwave - Ping Dead Nodes
   description: Try to ping a node if it goes dead to bring it back up
-  trigger:
-  - platform: event
+  triggers:
+  - trigger: event
     event_type: state_changed
-  condition:
+  conditions:
   - condition: and
     conditions:
     - condition: template
       value_template: '{{ trigger.event.data.new_state.domain == "sensor" }}'
     - condition: template
       value_template: '{{ trigger.event.data.new_state.state == "dead" }}'
-  action:
+  actions:
   - repeat:
       until:
       - condition: template
         value_template: '{{ trigger.event.data.new_state.state == "alive" }}'
       sequence:
-      - service: zwave_js.ping
+      - action: zwave_js.ping
         target:
           entity_id: '{{ trigger.entity_id }}'
       - delay:
@@ -170,12 +171,12 @@
     input:
       device: 736aad908eff817b14f1e1d2b34e8837
       double_tap_on:
-      - service: light.turn_on
+      - action: light.turn_on
         data: {}
         target:
           entity_id: light.master_bedroom_valance_white
       double_tap_off:
-      - service: light.turn_off
+      - action: light.turn_off
         data: {}
         target:
           entity_id: light.master_bedroom_valance_white
@@ -187,12 +188,12 @@
     input:
       device: 01cfafa677dc86ae136498ae90736d93
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         data: {}
         target:
           entity_id: cover.master_bedroom_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         data: {}
         target:
           entity_id: cover.master_bedroom_blinds
@@ -204,12 +205,12 @@
     input:
       device: 993e2b576c369a49c4185024ebf75b6c
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         data: {}
         target:
           entity_id: cover.master_bedroom_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         data: {}
         target:
           entity_id: cover.master_bedroom_blinds
@@ -220,12 +221,12 @@
     path: kpine/ge_double.yaml
     input:
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         data: {}
         target:
           entity_id: cover.south_bedroom_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         data: {}
         target:
           entity_id: cover.south_bedroom_blinds
@@ -238,26 +239,26 @@
     input:
       device: d90440495859223e336a7cb88051d00c
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         data: {}
         target:
           entity_id: cover.guest_bedroom_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         data: {}
         target:
           entity_id: cover.guest_bedroom_blinds
 - id: '1688566072264'
   alias: Master Bedroom Cover opens
   description: ''
-  trigger:
-  - platform: state
+  triggers:
+  - trigger: state
     entity_id:
     - cover.master_bedroom_blinds
     to: opening
-  condition: []
-  action:
-  - service: cover.open_cover
+  conditions: []
+  actions:
+  - action: cover.open_cover
     data: {}
     target:
       entity_id:
@@ -267,14 +268,14 @@
 - id: '1703184872764'
   alias: Master Bedroom Blinds Mirror to West-East
   description: ''
-  trigger:
-  - platform: state
+  triggers:
+  - trigger: state
     entity_id:
     - cover.master_bedroom_blinds
     attribute: current_position
-  condition: []
-  action:
-  - service: cover.set_cover_position
+  conditions: []
+  actions:
+  - action: cover.set_cover_position
     data:
       position: '{{ state_attr(''cover.master_bedroom_blinds'', ''current_position'')
         }}'
@@ -286,11 +287,11 @@
 - id: '1703187404595'
   alias: Motion blinds polling automation
   description: ''
-  trigger:
-  - platform: time_pattern
+  triggers:
+  - trigger: time_pattern
     seconds: /30
-  action:
-  - service: homeassistant.update_entity
+  actions:
+  - action: homeassistant.update_entity
     data: {}
     target:
       entity_id: cover.master_bedroom_blinds
@@ -313,27 +314,27 @@
 - id: '1703809610546'
   alias: Mirror Pool Privacy to Pool Cameras Privacy
   description: Mirror Pool Privacy to Pool Cameras Privacy
-  trigger:
-  - platform: state
+  triggers:
+  - trigger: state
     entity_id: switch.pool_privacy
-  condition: []
-  action:
-  - service: switch.turn_{{ trigger.to_state.state }}
+  conditions: []
+  actions:
+  - action: switch.turn_{{ trigger.to_state.state }}
     entity_id:
     - switch.cameras_pool_privacy
   mode: single
 - id: '1703810407568'
   alias: Turn off pool privacy at 6 AM
   description: Turn off pool privacy at 6 AM
-  trigger:
-  - platform: time
+  triggers:
+  - trigger: time
     at: 06:00:00
-  - platform: state
+  - trigger: state
     entity_id:
     - alarm_control_panel.home_alarm
     to:
-  action:
-  - service: switch.turn_off
+  actions:
+  - action: switch.turn_off
     entity_id: switch.pool_privacy
   mode: single
 - id: '1703974346853'
@@ -354,12 +355,12 @@
 - id: '1705371577961'
   alias: Perimiter Proximity Warning
   description: ''
-  trigger:
-  - platform: state
+  triggers:
+  - trigger: state
     entity_id:
     - binary_sensor.external_perimeter_person_motion
     to: 'on'
-  condition:
+  conditions:
   - condition: or
     conditions:
     - condition: state
@@ -371,8 +372,8 @@
     - condition: state
       entity_id: alarm_control_panel.home_alarm
       state: armed_vacation
-  action:
-  - service: script.1705370629380
+  actions:
+  - action: script.1705370629380
     metadata: {}
     data: {}
   mode: single
@@ -384,13 +385,13 @@
     input:
       device: 7e954798e14d48759e1eaf35ae49d372
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         metadata: {}
         data: {}
         target:
           entity_id: cover.den_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         metadata: {}
         data: {}
         target:
@@ -403,13 +404,13 @@
     input:
       device: 07209d9dabe78473c229d4757316f0d6
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         metadata: {}
         data: {}
         target:
           entity_id: cover.den_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         metadata: {}
         data: {}
         target:
@@ -422,13 +423,13 @@
     input:
       device: 227d1d7456d588f9216ece746314f17a
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         metadata: {}
         data: {}
         target:
           entity_id: cover.south_bedroom_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         metadata: {}
         data: {}
         target:
@@ -441,13 +442,13 @@
     input:
       device: 734fdd12570835ae85b07890b5814498
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         metadata: {}
         data: {}
         target:
           entity_id: cover.central_bedroom_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         metadata: {}
         data: {}
         target:
@@ -460,13 +461,13 @@
     input:
       device: 38ae76dee4b64be551b59c610e63ca11
       double_tap_on:
-      - service: cover.open_cover
+      - action: cover.open_cover
         metadata: {}
         data: {}
         target:
           entity_id: cover.central_bedroom_blinds
       double_tap_off:
-      - service: cover.close_cover
+      - action: cover.close_cover
         metadata: {}
         data: {}
         target:
@@ -531,19 +532,19 @@
 - id: '1710973809786'
   alias: Alarm when Triggered
   description: ''
-  trigger:
-  - platform: state
+  triggers:
+  - trigger: state
     entity_id:
     - alarm_control_panel.home_alarm
     to: triggered
-  condition: []
-  action:
-  - service: script.alarm
+  conditions: []
+  actions:
+  - action: script.alarm
     metadata: {}
     data: {}
   - repeat:
       sequence:
-      - service: script.alarm
+      - action: script.alarm
         metadata: {}
         data: {}
       until:
@@ -554,16 +555,16 @@
 - id: '1710974359705'
   alias: Trigger Alarm if perimeter breached
   description: ''
-  trigger:
-  - platform: state
+  triggers:
+  - trigger: state
     entity_id:
     - binary_sensor.perimeter_contacts
     to: 'on'
-  - platform: state
+  - trigger: state
     entity_id:
     - binary_sensor.internal_perimeter_person_detected
     to: 'on'
-  condition:
+  conditions:
   - condition: or
     conditions:
     - condition: state
@@ -575,8 +576,8 @@
     - condition: state
       entity_id: alarm_control_panel.home_alarm
       state: armed_vacation
-  action:
-  - service: alarm_control_panel.alarm_trigger
+  actions:
+  - action: alarm_control_panel.alarm_trigger
     target:
       entity_id: alarm_control_panel.home_alarm
     data:
@@ -635,3 +636,35 @@
       - cover.gate_opener
     data: {}
   mode: single
+- id: motion_sensors_auto_heal
+  alias: Motion Sensors Auto-Heal (Default Timeout)
+  description: Heal stuck motion sensors by force-resetting them to off after the
+    timeout
+  triggers:
+  - entity_id:
+    - binary_sensor.stairs_sensor_motion_detection
+    trigger: state
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 240
+    to:
+    - 'on'
+  actions:
+  - data:
+      entity_id: '{{ motion_entity }}'
+      state: 'off'
+      attributes:
+        healed_by: motion_autoheal
+        healed_at: '{{ now() }}'
+        assumed_param3: '{{ default_timeout }}'
+        heal_after_seconds: '{{ heal_after }}'
+    action: python_script.set_state
+  mode: parallel
+  variables:
+    default_timeout: 240
+    heal_margin: 30
+    heal_after: '{{ default_timeout + heal_margin }}'
+    motion_entity: '{{ trigger.entity_id }}'
+    last_changed: '{{ as_timestamp(states[motion_entity].last_changed) }}'
+    now_ts: '{{ as_timestamp(now()) }}'

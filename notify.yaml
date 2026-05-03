@@ -1,3 +1,12 @@
+- platform: rest
+  name: sms
+  resource: !secret sms_gateway
+  method: POST_JSON
+  authentication: basic
+  username: !secret sms_gateway_user
+  password: !secret sms_gateway_password
+  target_param_name: number
+  message_param_name: text
 - platform: group
   name: sms_oscar
   services:
@@ -17,4 +26,3 @@
     - service: mobile_app_oscar_phone
     - service: sms_hazel
     - service: mobile_app_hazel_phone
-    

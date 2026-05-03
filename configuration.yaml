@@ -2,10 +2,6 @@
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
 
-# Text to speech
-tts:
-  - platform: google_translate
-
 group: !include groups.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml
@@ -18,7 +14,6 @@ alert: !include alerts.yaml
 python_script:
 conversation:
 
-climate: !include climate.yaml
 mqtt: !include mqtt.yaml
 
 http:
