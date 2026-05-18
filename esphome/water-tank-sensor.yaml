@@ -1,13 +1,26 @@
 substitutions:
-  # Fault-detection thresholds, in metres — TUNE AFTER INSTALL.
-  #
+  # ── Tank geometry — 5000 L Ecotank "Estándar Tricapa" ────────────────
+  # tank_height_m:   sensor-face-to-tank-FLOOR distance, in metres — the
+  #   reading you would see with the tank bone dry. The 5000 L Ecotank
+  #   tricapa body is ~2.0 m tall, so 2.00 is the starting estimate.
+  #   *** MEASURE STRAIGHT DOWN AND CORRECT AFTER MOUNTING *** — the % and
+  #   litres readings are only as accurate as this single number.
+  # tank_capacity_l: rated capacity in litres (5000 L model). The tank is
+  #   a vertical cylinder, so volume scales linearly with water depth.
+  tank_height_m: "2.00"
+  tank_capacity_l: "5000"
+
+  # ── Fault-detection thresholds, in metres — TUNE AFTER INSTALL ───────
   # overflow_distance_m: if the water surface comes closer than this to
   #   the sensor, the tank is overfull / overflowing (or the sensor has
   #   dropped onto something). Set just inside the safe maximum level.
   # no_target_distance_m: if the distance exceeds this, the sensor sees
   #   no target — knocked askew, fallen off, or water below sensing range.
+  #   For a ~2 m tank the water can never read past the floor (~2.0 m),
+  #   so anything beyond ~2.5 m can only be a fault. This sits just past
+  #   empty, far below the sensor's 6.5 m "no target detected" code.
   overflow_distance_m: "0.30"
-  no_target_distance_m: "5.0"
+  no_target_distance_m: "2.50"
 
 esphome:
   name: water-tank-sensor
@@ -100,8 +113,7 @@ sensor:
           window_size: 5
           send_every: 5
 
-  # Tank fill percentage. The two 5.0 constants are the tank height in
-  # metres — set them to the real tank dimensions after install.
+  # Tank fill percentage. Depth = tank_height_m - measured distance.
   - platform: template
     name: "Water Tank Level"
     unit_of_measurement: "%"
@@ -111,11 +123,11 @@ sensor:
     update_interval: 10s
     lambda: |-
       if (isnan(id(tank_distance).state)) return NAN;
-      float depth_m = 5.0f - id(tank_distance).state;
-      return clamp(depth_m / 5.0f * 100.0f, 0.0f, 100.0f);
+      float depth_m = ${tank_height_m}f - id(tank_distance).state;
+      return clamp(depth_m / ${tank_height_m}f * 100.0f, 0.0f, 100.0f);
 
-  # Stored volume in litres. 5000 = tank capacity in litres — set to the
-  # real tank capacity after install.
+  # Stored volume in litres — water depth scaled by the tank capacity
+  # (vertical cylinder, so depth and volume are linearly proportional).
   - platform: template
     name: "Water Tank Volume"
     unit_of_measurement: "L"
@@ -125,8 +137,9 @@ sensor:
     update_interval: 10s
     lambda: |-
       if (isnan(id(tank_distance).state)) return NAN;
-      float depth_m = 5.0f - id(tank_distance).state;
-      return clamp(depth_m / 5.0f * 5000.0f, 0.0f, 5000.0f);
+      float depth_m = ${tank_height_m}f - id(tank_distance).state;
+      float full_l  = ${tank_capacity_l}.0f;
+      return clamp(depth_m / ${tank_height_m}f * full_l, 0.0f, full_l);
 
   # Wi-Fi signal strength (RSSI). Useful for judging how much the
   # enclosure attenuates Wi-Fi — target better than -70 dBm; -80 dBm

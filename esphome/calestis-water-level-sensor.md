@@ -316,7 +316,7 @@ filter ignores brief spikes — they trip only on a sustained condition.
 ```yaml
 substitutions:
   overflow_distance_m: "0.30"    # closer than this = overfull / overflowing
-  no_target_distance_m: "5.0"    # beyond this = no target / sensor displaced
+  no_target_distance_m: "2.50"   # beyond this = no target / sensor displaced
 
 binary_sensor:
   - platform: template
@@ -339,31 +339,44 @@ binary_sensor:
 ```
 
 Both thresholds are `substitutions` — **tune them after install** to the
-real tank geometry. Wire a Home Assistant automation to these entities to
-get notified the moment the tank overflows or the sensor is disturbed.
+real tank geometry. `no_target_distance_m` is `2.50` m: for the ~2 m tank
+below, water can never read past the floor, so any distance beyond ~2.5 m
+can only be a fault (well below the sensor's 6.5 m "no target" code). Wire
+a Home Assistant automation to these entities to get notified the moment
+the tank overflows or the sensor is disturbed.
 
 ### Water level math
 
-The deployed config models a 5 m-tall, 5000 L tank:
+The deployed config models the target tank: a **5000 L Ecotank "Estándar
+Tricapa"** — a vertical cylinder roughly 1.9 m in diameter and ~2.0 m tall.
+Tank geometry is held in two `substitutions` so there is a single place to
+tune after install:
 
 ```yaml
+substitutions:
+  tank_height_m:   "2.00"   # sensor-face-to-FLOOR distance (empty-tank reading)
+  tank_capacity_l: "5000"   # rated capacity, litres
+
   - platform: template          # Water Tank Level, %
     lambda: |-
       if (isnan(id(tank_distance).state)) return NAN;
-      float depth_m = 5.0f - id(tank_distance).state;
-      return clamp(depth_m / 5.0f * 100.0f, 0.0f, 100.0f);
+      float depth_m = ${tank_height_m}f - id(tank_distance).state;
+      return clamp(depth_m / ${tank_height_m}f * 100.0f, 0.0f, 100.0f);
 
   - platform: template          # Water Tank Volume, L
     lambda: |-
       if (isnan(id(tank_distance).state)) return NAN;
-      float depth_m = 5.0f - id(tank_distance).state;
-      return clamp(depth_m / 5.0f * 5000.0f, 0.0f, 5000.0f);
+      float depth_m = ${tank_height_m}f - id(tank_distance).state;
+      float full_l  = ${tank_capacity_l}.0f;
+      return clamp(depth_m / ${tank_height_m}f * full_l, 0.0f, full_l);
 ```
 
-The two `5.0` constants are the **tank height in metres** and the `5000` is
-the **tank capacity in litres**. **Set these to the real tank dimensions
-after install** — measure the sensor-face-to-bottom distance for an empty
-tank and the tank's rated capacity.
+`tank_height_m` is the sensor-face-to-bottom distance — the reading you
+would see with the tank drained. The ~2.0 m value is an estimate from the
+tank's body height; **measure it straight down after mounting and correct
+it** — the % and litres readings are only as accurate as this one number.
+The volume formula assumes a constant cross-section, which holds because
+the Ecotank tank is a vertical cylinder.
 
 ### Diagnostics
 
