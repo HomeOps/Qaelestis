@@ -27,6 +27,7 @@ the water. Tank height minus that distance gives the water level.
 | M5 Atom Lite                              | ESP32-PICO-D4 module with **two female headers on the bottom**: a 5-pin row (3V3, G22, G19, G23, G33) and a 4-pin row (G21, G25, 5V, GND)        |
 | 3 × Male-to-male Dupont jumper, ~15–20 cm | One male end plugs into the M5 bottom female header; the other end has its male pin snipped off and is stripped ~4 mm to land in the screw block |
 | Power                                     | 3.3 VDC supplied directly from the M5 Atom Lite `3V3` pin                                                                                       |
+| RAINPAL PVC Bulkhead Tank Fitting         | **2" FNPT double-female threaded union**, PVC, Amazon ASIN **B0DQ61T7BV**. Provides the sealed cable / sensor penetration through the tank lid — see §8 |
 
 **No solder, no WAGOs, no breadboard, no extra components.** Total active
 build = three jumper wires.
@@ -402,9 +403,38 @@ is better than −70 dBm; −80 dBm or worse means dropped readings.
   as 50 mm. A generous margin above that is recommended for stable readings.
 - Avoid mounting directly above the inlet stream; falling water creates
   acoustic noise. Aim for the calmest part of the surface.
+- **Tank-lid penetration — required bulkhead fitting.** Drill a hole in
+  the Ecotank lid with a **70 mm (2-3/4") HSS bi-metal hole saw** — e.g.
+  Qjaiune Amazon ASIN **B0BX2KVTT9** — and install a **RAINPAL PVC 2"
+  FNPT double-female threaded bulkhead fitting** (Amazon ASIN
+  **B0DQ61T7BV**) before mounting anything else. The RAINPAL documentation
+  lists the threaded body OD as **70.8 mm**, but a 70 mm hole saw produces
+  a clean, **snug-but-correct** install — verified empirically on this
+  build. (The hole saw's kerf and natural wobble give a few tenths of a
+  millimetre of working clearance, and a hair of interference helps the
+  gasket seat squarely.) Drill at **low RPM with light pressure**;
+  bi-metal teeth grab and melt thin tank-lid plastic at high speed.
+
+  The same 70 mm hole saw doubles as the cutout for the recessed
+  Multisensor accessory used elsewhere on the property, so it earns its
+  spot in the toolbox.
+
+  The fitting threads through the lid and locks with its supplied nut and
+  gasket from the inside, giving a clean, sealed, threaded port:
+    - The MB7851 head sits in the **underside** of the fitting, transducer
+      pointing down into the tank — the 2" bore is wider than the sensor
+      body (~1") and clears the transducer beam, so the bulkhead does not
+      obstruct or echo into the acoustic path.
+    - The factory cable runs **up through the 2" opening** into the dry M5
+      Atom Lite enclosure mounted on top of the lid.
+    - PVC is UV-resistant and chemically inert — safe for potable-water
+      service and the outdoor Calestis environment.
+  Use the bulkhead's gasket on the wet side and seat the nut hand-tight plus
+  a quarter-turn; do not over-torque PVC threads.
 - The MB7851 head is IP67 but the **WJEK254 screw-terminal block is not**.
   Mount the terminal block and the M5 Atom Lite inside a dry enclosure
-  outside the tank.
+  outside the tank, sitting directly over the bulkhead so the cable run
+  through the fitting is short and strain-free.
 - **Enclosure material & Wi-Fi.** The M5 Atom Lite has only a small
   on-board PCB antenna. A **plastic enclosure is RF-transparent** and the
   safe choice. A metal enclosure acts as a partial Faraday cage — if metal
