@@ -1,15 +1,16 @@
 // ============================================================================
-//  Water-Level-Sensor Sun Hat  —  Donut Base  (Stage 1 of: base + 4 arms + canopy)
+//  Water-Level-Sensor Sun Hat  —  ring + 3 arms + umbrella, pin-jointed
 // ----------------------------------------------------------------------------
 //  Shades the M5 Atom Lite enclosure that sits on top of the water-tank lid,
 //  over the RAINPAL 2" PVC bulkhead (body OD 70.8 mm, ASIN B0DQ61T7BV).
 //  Material: WHITE ASA (UV- and weather-resistant — outdoor Calestis, Costa Rica).
 //
-//  This file currently builds ONLY the donut base. The 4 arms and the umbrella
-//  canopy attach to the bosses on top of the ring in later stages.
+//  THREE printable objects, chosen by `part` below: the lower RING (x1), the
+//  ARM (x3), and the UMBRELLA (x1). Arms join both the ring and the umbrella by
+//  Ø4 friction pins into tight sockets — ring joint tight (fixed), umbrella
+//  joint friction (removable). No print-in-place; parts assemble by hand.
 //
-//  All dimensions are PARAMETRIC — every value below is an assumption marked
-//  [VERIFY] until measured on the real install. Edit the number, re-render.
+//  All dimensions are PARAMETRIC — edit a value at the top and re-render.
 // ============================================================================
 
 // ---- Render quality -------------------------------------------------------
@@ -35,30 +36,32 @@ show_section_2d = false;
 // Debug: set true (or -D show_dims=true) to render the dimensioned cross-section.
 show_dims       = false;
 
-// ---- Arms: 3 at 120°, each a Ø5 mm rod, 20 cm tall, CHAINED to the ring -----
+// ---- Print/build selector --------------------------------------------------
+//  Three separate printable objects + an assembled preview:
+//   "all"      -> assembled preview (ring + 3 arms + umbrella)
+//   "ring"     -> the lower ring only         (print x1)
+//   "arm"      -> one arm only, laid flat      (print x3)
+//   "umbrella" -> the canopy only             (print x1)
+part = "all";
+
+// ---- Arms: 3 at 120°, each a Ø5 mm rod, 17 cm, PINNED at both ends ----------
 arm_count = 3;             // number of arms, equally spaced
 arm_d     = 5;             // arm rod diameter (mm)
-arm_h     = 170;           // arm rod height (17 cm)
-show_arms = true;          // show the arms
+arm_h     = 170;           // arm rod length (17 cm)
 
-// Print-in-place SINGLE chain joint: ring-eye interlinks the arm-lug directly.
-hole_d     = 3;            // hole inside each loop (ring-eye & arm-lug)
-link_stock = 2;            // loop stock diameter (Ø)
-clearance  = 0.4;          // print-in-place gap for free movement (ASA)
-rod_drop   = 0.5;          // lower the rod into the lug loop for a stronger weld
+// Pin / socket friction joints (same Ø4 pin both ends; Ø(arm_d) shoulder = stop).
+pin_d       = 4;           // pin diameter
+pin_len     = 10;          // pin engagement depth
+socket_wall = 2.5;         // wall around each socket
+base_fit    = 0.10;        // RING socket clearance — TIGHT (fixed bottom joint)
+top_fit     = 0.15;        // UMBRELLA socket clearance — friction (removable top)
+base_boss_h = pin_len + 3; // ring socket-boss height (gives the bottom pin depth)
 
-// The arm TOP end is a PIN with a tight (friction) fit into an umbrella socket.
-pin_d       = 4;           // pin diameter (reduced from the rod -> shoulder stop)
-pin_len     = 10;          // pin engagement depth into the umbrella socket
-pin_fit     = 0.15;        // socket clearance — tight friction fit for ASA
-socket_wall = 2.5;         // wall around each umbrella socket
-
-// ---- Umbrella (canopy) held by the 3 arms, hooked at its rim ----------------
+// ---- Umbrella (canopy) -----------------------------------------------------
 umbrella_d    = 200;       // max canopy diameter (20 cm) — HARD outer limit
 umbrella_h    = 30;        // canopy height (3 cm)
 umbrella_wall = 2;         // canopy shell wall
 attach_inset  = 0.5;       // extra margin inside the flush-with-rim socket position
-show_umbrella = true;
 
 // ===========================================================================
 //  Derived
@@ -70,22 +73,13 @@ col_o_t    = bore_t_r + ribbon_w;          // column outer face, top
 foot_tip   = col_o_b  - inner_ring_w;      // foot inner tip (inward); lip = 2.6 past bore
 arm_tip    = col_o_t  + arm_reach;         // top arm outer tip (outward)
 arm_pcd_r  = (col_o_t + arm_tip) / 2;      // arms centred on the top flange
-link_rt    = link_stock / 2;               // chain stock tube radius
-loop_R     = hole_d / 2 + link_rt;         // loop major radius (inner hole = hole_d)
-link_dz    = loop_R;                       // vertical centre-to-centre of chain loops
-
-// chain z-stack (local, above the flange) and arm geometry
-ze_c       = loop_R;                       // eye loop centre
-zg_c       = ze_c + link_dz;               // lug loop centre
-za_c       = zg_c + loop_R - rod_drop;     // rod base (local)
-rod_base_z = total_height + za_c;          // world z where each rod starts
 umb_r      = umbrella_d / 2;               // canopy radius (Ø200 -> 100), HARD outer limit
 attach_r   = umb_r - (pin_d / 2 + socket_wall) - attach_inset;  // socket OUTER edge ~flush with the Ø200 rim
-// EASY MATH, counting the chain (rod_base_z) AND the hook (hook_reach):
-arm_eff    = arm_h;                                    // rod reaches the umbrella underside
-arm_angle  = asin((attach_r - arm_pcd_r) / arm_eff);   // outward tilt from vertical (deg)
-arm_rise   = arm_eff * cos(arm_angle);                 // vertical rise (rod base -> umbrella underside)
-grab_z     = rod_base_z + arm_rise;                    // socket-opening height (at attach_r)
+rod_base_z = total_height + base_boss_h;    // rod bottom (shoulder) rests on the ring boss top
+// EASY MATH: tilt the rod so its top reaches the wider canopy attach radius.
+arm_angle  = asin((attach_r - arm_pcd_r) / arm_h);   // outward tilt from vertical (deg)
+arm_rise   = arm_h * cos(arm_angle);                 // vertical rise (rod base -> umbrella underside)
+grab_z     = rod_base_z + arm_rise;                  // umbrella socket-opening height (at attach_r)
 dome_h_in  = umbrella_h * sqrt(1 - pow(attach_r / umb_r, 2));  // dome height over rim at attach_r
 
 // ===========================================================================
@@ -116,39 +110,36 @@ module donut_ring() {
     rotate_extrude(convexity = 4) ring_section();
 }
 
-// A torus ring (hole axis = Z, lies in the XY plane).
-module ring(R, r) rotate_extrude($fn = 64) translate([R, 0]) circle(r = r, $fn = 24);
-module loop() ring(loop_R, link_rt);                 // the chain loop
-
-// The rod only, built straight along +z (tilted later by the caller).
-// The vertical pin is added separately in chain_arm so it stays vertical.
-module arm_rod() {
-    cylinder(d = arm_d, h = arm_h, $fn = 48);                            // Ø5 rod
+// ---- LOWER RING -----------------------------------------------------------
+// A vertical socket boss on the ring flange; the hole opens UPWARD so the arm's
+// bottom pin drops in (tight `base_fit`).
+module ring_socket() {
+    difference() {
+        cylinder(d = pin_d + 2 * socket_wall, h = base_boss_h, $fn = 32);
+        translate([0, 0, base_boss_h - pin_len])
+            cylinder(d = pin_d + base_fit, h = pin_len + 0.1, $fn = 32);
+    }
 }
 
-// One chained arm, built in a local frame (x = radial, y = tangential, z = up):
-//   flange -> stem -> EYE loop -> LUG loop -> tilted rod -> HOOK.
-// The two loops interlink directly (single chain); the rod tilts out `arm_angle`
-// so its hooked top reaches the wider umbrella rim.
-module chain_arm() {
-    cylinder(d = link_stock, h = ze_c, $fn = 24);              // stem to the eye
-    translate([0, 0, ze_c]) rotate([90, 0, 0]) loop();        // EYE  (X-Z plane)
-    translate([0, 0, zg_c]) rotate([0, 90, 0]) loop();        // LUG  (Y-Z plane)
-    translate([0, 0, za_c]) rotate([0, arm_angle, 0]) arm_rod();   // tilted rod
-    // VERTICAL pin at the rod top so the umbrella lifts straight off
-    rtx = arm_h * sin(arm_angle);                  // rod top, radial offset (local)
-    rtz = za_c + arm_h * cos(arm_angle);           // rod top, height (local) = grab_z - total_height
-    translate([rtx, 0, rtz - 1])
-        cylinder(d = pin_d, h = pin_len + 1, $fn = 32);   // (1 mm overlaps the rod)
-}
-
-module arms() {
+module ring_part() {
+    donut_ring();
     for (i = [0 : arm_count - 1])
         rotate([0, 0, i * 360 / arm_count])
-            translate([arm_pcd_r, 0, total_height])
-                chain_arm();
+            translate([arm_pcd_r, 0, total_height]) ring_socket();
 }
 
+// ---- ARM (printed x3) -----------------------------------------------------
+// Local frame: origin = rod bottom (shoulder). A Ø4 pin points DOWN into the
+// ring socket; the tilted Ø5 rod rises; a Ø4 pin points UP into the umbrella.
+// Both pins are vertical so the parts assemble/disassemble straight in-and-out.
+module arm() {
+    translate([0, 0, -pin_len]) cylinder(d = pin_d, h = pin_len + 1, $fn = 32);  // bottom pin (down)
+    rotate([0, arm_angle, 0]) cylinder(d = arm_d, h = arm_h, $fn = 48);          // tilted rod
+    translate([arm_h * sin(arm_angle), 0, arm_h * cos(arm_angle) - 1])           // top pin (up)
+        cylinder(d = pin_d, h = pin_len + 1, $fn = 32);
+}
+
+// ---- UMBRELLA -------------------------------------------------------------
 // Shallow dome (top half of an ellipsoid): diameter d, height h, rim at z=0.
 module dome(d, h) {
     intersection() {
@@ -157,10 +148,10 @@ module dome(d, h) {
     }
 }
 
-// The umbrella canopy: a thin dome shell with `arm_count` tight-fit sockets on
-// the underside (inside the rim, at attach_r) — the arm pins push into these.
+// Thin dome shell with `arm_count` VERTICAL sockets on the underside (inside the
+// rim, at attach_r) — the arm top pins push up into these (friction `top_fit`).
 module umbrella() {
-    translate([0, 0, grab_z])                          // canopy rim at the socket-opening height
+    translate([0, 0, grab_z])
         difference() {
             dome(umbrella_d, umbrella_h);
             dome(umbrella_d - 2 * umbrella_wall, umbrella_h - umbrella_wall);
@@ -168,17 +159,20 @@ module umbrella() {
     for (i = [0 : arm_count - 1])
         rotate([0, 0, i * 360 / arm_count])
             translate([attach_r, 0, grab_z])
-                difference() {                         // VERTICAL socket (straight down)
+                difference() {
                     cylinder(d = pin_d + 2 * socket_wall, h = dome_h_in, $fn = 32);  // boss up to the dome
                     translate([0, 0, -0.1])
-                        cylinder(d = pin_d + pin_fit, h = pin_len + 0.1, $fn = 32);  // socket hole
+                        cylinder(d = pin_d + top_fit, h = pin_len + 0.1, $fn = 32);  // socket hole
                 }
 }
 
-module sun_hat_base() {
-    donut_ring();
-    if (show_arms)     arms();
-    if (show_umbrella) umbrella();
+// ---- Assembled preview ----------------------------------------------------
+module assembled() {
+    ring_part();
+    for (i = [0 : arm_count - 1])
+        rotate([0, 0, i * 360 / arm_count])
+            translate([arm_pcd_r, 0, rod_base_z]) arm();
+    umbrella();
 }
 
 // ---- Dimensioned cross-section (to compare against the hand sketch) --------
@@ -247,6 +241,9 @@ module dimensioned_section() {
 // ===========================================================================
 //  Build
 // ===========================================================================
-if      (show_dims)       dimensioned_section();  // annotated 2D cross-section
-else if (show_section_2d) ring_section();         // plain 2D Z profile
-else                      sun_hat_base();          // the donut (+ arms if show_arms)
+if      (show_dims)         dimensioned_section();                       // annotated 2D cross-section
+else if (show_section_2d)   ring_section();                             // plain 2D Z profile
+else if (part == "ring")     ring_part();                               // lower ring (x1)
+else if (part == "arm")      translate([0, 0, arm_d / 2]) rotate([0, 90, 0]) arm();  // one arm, laid flat (x3)
+else if (part == "umbrella") translate([0, 0, -grab_z]) umbrella();     // canopy, rim to z=0 (x1)
+else                         assembled();                                // full assembly preview
