@@ -49,3 +49,6 @@ home-assistant.log.*
 .cache
 .ha_run.lock
 
+oscar
+
+
