@@ -1,0 +1,188 @@
+substitutions:
+  # ── Tank geometry — 5000 L Ecotank "Estándar Tricapa" ────────────────
+  # tank_height_m:   sensor-face-to-tank-FLOOR distance, in metres — the
+  #   reading you would see with the tank bone dry. The 5000 L Ecotank
+  #   tricapa body is ~2.0 m tall, so 2.00 is the starting estimate.
+  #   *** MEASURE STRAIGHT DOWN AND CORRECT AFTER MOUNTING *** — the % and
+  #   litres readings are only as accurate as this single number.
+  # tank_capacity_l: rated capacity in litres (5000 L model). The tank is
+  #   a vertical cylinder, so volume scales linearly with water depth.
+  tank_height_m: "2.00"
+  tank_capacity_l: "5000"
+
+  # ── Fault-detection thresholds, in metres — TUNE AFTER INSTALL ───────
+  # overflow_distance_m: if the water surface comes closer than this to
+  #   the sensor, the tank is overfull / overflowing (or the sensor has
+  #   dropped onto something). Set just inside the safe maximum level.
+  # no_target_distance_m: if the distance exceeds this, the sensor sees
+  #   no target — knocked askew, fallen off, or water below sensing range.
+  #   For a ~2 m tank the water can never read past the floor (~2.0 m),
+  #   so anything beyond ~2.5 m can only be a fault. This sits just past
+  #   empty, far below the sensor's 6.5 m "no target detected" code.
+  overflow_distance_m: "0.30"
+  no_target_distance_m: "2.50"
+
+esphome:
+  name: water-tank-sensor
+  friendly_name: Water Tank Sensor
+
+esp32:
+  board: m5stack-atom
+  framework:
+    type: arduino
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: !secret ap_ssid
+    password: !secret ap_password
+
+captive_portal:
+
+# MB7851-B36 (XL-TankSensor-WRMT) serial build — see calestis-water-level-sensor.md.
+#
+# Pin order confirmed by multimeter: with the engraved "MB7851-B36" label
+# reading right-side up, pins run 1..7 left to right (Pin 7 = rightmost).
+# Wire into the M5 Atom Lite bottom 5-pin header (NOT the Grove port):
+#
+#   Sensor Pin 5  TX  (3rd from right) -> M5 header  G33   (ESP32 UART RX)
+#   Sensor Pin 6  V+  (2nd from right) -> M5 header  3V3   (3.3 V — NOT 5 V)
+#   Sensor Pin 7  GND (rightmost)      -> M5 header  GND
+#
+# 3.3 V supply keeps the sensor's TX line at 0–3.3 V, safe for GPIO33.
+# Pin 4 (RX/trigger) left open -> sensor free-runs and auto-transmits.
+#
+# Frame format: the WRMT variant emits "Rnnnn Tnnn\r" — a distance field
+# (mm) AND a temperature field. ESPHome's hrxl_maxsonar_wr only parses the
+# plain "Rnnnn\r" frame, so it is NOT used. The frame is parsed below: the
+# UART debug feature splits the stream on CR and the lambda reads the 4
+# distance digits and publishes them (in metres) to 'tank_distance'.
+uart:
+  id: maxbotix_uart
+  rx_pin: GPIO33
+  baud_rate: 9600
+  debug:
+    direction: RX
+    dummy_receiver: true        # no other component reads this UART
+    after:
+      delimiter: "\r"           # one full frame per sequence call
+    sequence:
+      - lambda: |-
+          // WRMT frame: 'R' + 4 distance digits + ' ' + 'T' + 3 temp digits + CR.
+          // Reject ONLY structurally-corrupt frames (line noise). EVERY
+          // well-formed reading is published — including out-of-tank values
+          // such as ~50 mm (water/object at the sensor) or ~6500 mm (no
+          // target). Those are real fault signals — overflow, a displaced
+          // or fallen sensor — and must never be filtered away or they
+          // would freeze 'tank_distance' and disguise a fault as normal.
+          if (bytes.size() < 5 || bytes[0] != 'R')
+            return;
+          int mm = 0;
+          for (int i = 1; i <= 4; i++) {
+            if (bytes[i] < '0' || bytes[i] > '9')
+              return;
+            mm = mm * 10 + (bytes[i] - '0');
+          }
+          id(tank_distance).publish_state(mm / 1000.0f);
+
+sensor:
+  # Raw distance from the sensor face to the water surface, in metres.
+  # Published by the UART frame parser above — every well-formed reading,
+  # never range-gated, so faults stay visible.
+  - platform: template
+    name: "Tank Distance"
+    id: tank_distance
+    unit_of_measurement: "m"
+    device_class: distance
+    accuracy_decimals: 3
+    state_class: measurement
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 5
+
+  # Tank fill percentage. Depth = tank_height_m - measured distance.
+  - platform: template
+    name: "Water Tank Level"
+    unit_of_measurement: "%"
+    icon: "mdi:water-percent"
+    accuracy_decimals: 1
+    state_class: measurement
+    update_interval: 10s
+    lambda: |-
+      if (isnan(id(tank_distance).state)) return NAN;
+      float depth_m = ${tank_height_m}f - id(tank_distance).state;
+      return clamp(depth_m / ${tank_height_m}f * 100.0f, 0.0f, 100.0f);
+
+  # Stored volume in litres — water depth scaled by the tank capacity
+  # (vertical cylinder, so depth and volume are linearly proportional).
+  - platform: template
+    name: "Water Tank Volume"
+    unit_of_measurement: "L"
+    icon: "mdi:water"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: 10s
+    lambda: |-
+      if (isnan(id(tank_distance).state)) return NAN;
+      float depth_m = ${tank_height_m}f - id(tank_distance).state;
+      float full_l  = ${tank_capacity_l}.0f;
+      return clamp(depth_m / ${tank_height_m}f * full_l, 0.0f, full_l);
+
+  # Wi-Fi signal strength (RSSI). Useful for judging how much the
+  # enclosure attenuates Wi-Fi — target better than -70 dBm; -80 dBm
+  # or worse means dropped readings.
+  - platform: wifi_signal
+    name: "Wi-Fi Signal"
+    update_interval: 60s
+
+binary_sensor:
+  # Water dangerously close to the sensor: tank overfull / OVERFLOWING,
+  # or the sensor has dropped onto something. delayed_on ignores brief
+  # spikes — it trips only if the condition holds for 30 s.
+  - platform: template
+    name: "Water Tank Overflow Risk"
+    device_class: problem
+    lambda: |-
+      if (isnan(id(tank_distance).state)) return {};
+      return id(tank_distance).state < ${overflow_distance_m};
+    filters:
+      - delayed_on: 30s
+
+  # Sensor reports no target (distance beyond the tank): knocked askew,
+  # fallen off the tank, or water dropped below the sensing range.
+  - platform: template
+    name: "Water Tank Sensor Fault"
+    device_class: problem
+    lambda: |-
+      if (isnan(id(tank_distance).state)) return {};
+      return id(tank_distance).state > ${no_target_distance_m};
+    filters:
+      - delayed_on: 30s
+
+# M5 Atom Lite built-in RGB NeoPixel (GPIO27)
+light:
+  - platform: neopixelbus
+    type: GRB
+    variant: WS2812
+    pin: GPIO27
+    num_leds: 1
+    name: "Status LED"
+    restore_mode: ALWAYS_OFF
+
+button:
+  - platform: restart
+    name: "Restart"
+    entity_category: diagnostic
