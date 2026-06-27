@@ -1,6 +1,6 @@
 - platform: rest
   name: Aboveground Water Tank Pressure
-  resource: http://192.168.10.73/get_sensors
+  resource: http://192.168.80.72/get_sensors
   scan_interval: 30
   timeout: 80
   value_template: >
