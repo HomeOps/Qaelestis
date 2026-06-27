@@ -1,0 +1,37 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "LG ESS (local)",
+        "description": "Enter the IP address of your LG ESS / RESU battery on your network. The integration reads the local web portal (HTTP, port 80) - no cloud and no password required.",
+        "data": {
+          "host": "Host or IP address"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect. Check the IP and that the battery is on your network."
+    },
+    "abort": {
+      "already_configured": "This battery is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "soc": { "name": "State of charge" },
+      "soh": { "name": "State of health" },
+      "power": { "name": "Power" },
+      "current": { "name": "Current" },
+      "voltage": { "name": "Voltage" },
+      "temperature": { "name": "Temperature" },
+      "cycle_count": { "name": "Cycle count" },
+      "lifetime_discharge": { "name": "Lifetime discharge" },
+      "operation_mode": { "name": "Operation mode" },
+      "wifi": { "name": "WiFi status" },
+      "cloud": { "name": "Cloud status" }
+    },
+    "binary_sensor": {
+      "charging": { "name": "Charging" }
+    }
+  }
+}
