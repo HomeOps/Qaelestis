@@ -1,6 +1,6 @@
 substitutions:
-  name: panel-01
-  friendly_name: Panel 01
+  name: south-bedroom-panel
+  friendly_name: South Bedroom Panel
   alarm_entity_id: alarm_control_panel.home_alarm
   # nav_home_page: "1"          # omitted — default is "1"
   nav_page_1: alarm_page
