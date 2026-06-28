@@ -8,12 +8,28 @@ substitutions:
   sleep_mode_default_state: "ON"
   sleep_mode_default_timeout: "30"
 
+  # Flash / OTA partition layout. Default "4MB" → ~1.75MB per OTA app slot,
+  # fully OTA-friendly. Override to "16MB" on a >=16MB device whose firmware
+  # has outgrown that slot → ESPHome auto-sizes ~7.75MB app slots. NOTE: a
+  # partition-table change only takes effect via a one-time USB-serial flash
+  # (OTA never rewrites the partition table); erase_flash first.
+  #flash_size: "16MB"
+
+#esp32_ble_tracker:
+#bluetooth_proxy:
+#  active: true
+
 packages:
-  keypad:
+  panel:
     url: https://github.com/HomeOps/esphome-hass-panels
-    ref: v2.0.0
-    file: esp32-hass-panel.yaml
+    ref: v2.3.0
     refresh: 0d
+    files:
+      - packages/core.yaml            # board + nav + sleep + connectivity
+      - packages/alarm-keypad-ui.yaml
+      # cover-ui / energy-ui omitted -> not compiled
+      # - packages/area-ui.yaml       
+      # - packages/thermostat-ui.yaml
 
 wifi:
   ssid: !secret wifi_ssid
@@ -21,4 +37,4 @@ wifi:
   manual_ip:
     static_ip: 192.168.81.221
     gateway: 192.168.81.1
-    subnet: 255.255.255.0  
+    subnet: 255.255.255.0
