@@ -19,7 +19,7 @@ substitutions:
   #   For a ~2 m tank the water can never read past the floor (~2.0 m),
   #   so anything beyond ~2.5 m can only be a fault. This sits just past
   #   empty, far below the sensor's 6.5 m "no target detected" code.
-  overflow_distance_m: "0.30"
+  overflow_distance_m: "0.15"
   no_target_distance_m: "2.50"
 
 esphome:
@@ -181,6 +181,7 @@ light:
     num_leds: 1
     name: "Status LED"
     restore_mode: ALWAYS_OFF
+    internal: true
 
 button:
   - platform: restart
