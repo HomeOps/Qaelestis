@@ -9,6 +9,7 @@ substitutions:
   #   a vertical cylinder, so volume scales linearly with water depth.
   tank_height_m: "2.00"
   tank_capacity_l: "5000"
+  tank_full_distance_m: "0.200"
 
   # ── Fault-detection thresholds, in metres — TUNE AFTER INSTALL ───────
   # overflow_distance_m: if the water surface comes closer than this to
@@ -124,7 +125,7 @@ sensor:
     lambda: |-
       if (isnan(id(tank_distance).state)) return NAN;
       float depth_m = ${tank_height_m}f - id(tank_distance).state;
-      return clamp(depth_m / ${tank_height_m}f * 100.0f, 0.0f, 100.0f);
+      return clamp(depth_m / (${tank_height_m}f - ${tank_full_distance_m}f) * 100.0f, 0.0f, 100.0f);
 
   # Stored volume in litres — water depth scaled by the tank capacity
   # (vertical cylinder, so depth and volume are linearly proportional).
