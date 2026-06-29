@@ -22,7 +22,7 @@ substitutions:
 packages:
   panel:
     url: https://github.com/HomeOps/esphome-hass-panels
-    ref: v2.3.0
+    ref: v2.3.1
     refresh: 0d
     files:
       - packages/core.yaml            # board + nav + sleep + connectivity
