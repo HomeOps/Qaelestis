@@ -62,21 +62,21 @@ climate:
     #follow_me_sensor: thermostat_follow_me_sensor  # Automatically updates follow_me from this sensor
     #internal_current_temperature:
     #  name: "Internal Current Temperature"
-    fan_speed:
-      name: "Fan Speed"
-    defrost:
-      name: "Defrost Active"
-    compressor_active:
-      name: "Compressor Active"
+    #fan_speed:
+    #  name: "Fan Speed"
+    #defrost:
+    #  name: "Defrost Active"
+    #compressor_active:
+    #  name: "Compressor Active"
     #compressor_aware_action: true
     #sync_fan_mode_from_device: true
     visual:                     # Optional. Example of visual settings override.
-      min_temperature: 17 °C    # min: 17
-      max_temperature: 30 °C    # max: 30
-      temperature_step: 0.1 °C  # min: 0.5
+      min_temperature: 18 °C    # min: 17
+      max_temperature: 28 °C    # max: 30
+      temperature_step: 1 °C  # min: 0.5
     supported_modes:            # Optional. 
       - COOL
-      - FAN_ONLY
+      #- FAN_ONLY
     #outdoor_temperature:        # Optional. Outdoor temperature sensor
     #  name: Outside Temp
     #temperature_2a:             # Optional. Inside coil temperature
