@@ -1,0 +1,25 @@
+esphome:
+  name: lobby-panel
+  friendly_name: Lobby Panel
+
+# Replace this with your actual platform if you aren't using ESP32.
+esp32:
+  board: esp32dev
+
+logger:
+
+api:
+  encryption:
+    key: "0DCsfpJDCqOllqfh/gOkb0Fl+dQjWZol1U4LCjXIha8="
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: Lobby Panel Fallback Hotspot
+    password: "e0PsqISqx7tj"
+
+captive_portal:
