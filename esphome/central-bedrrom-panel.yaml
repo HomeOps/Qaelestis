@@ -1,25 +1,40 @@
-esphome:
-  name: central-bedrrom-panel
-  friendly_name: Central Bedrrom Panel
+substitutions:
+  name: central-bedroom-panel
+  friendly_name: Central Bedroom Panel
+  alarm_entity_id: alarm_control_panel.home_alarm
+  # nav_home_page: "1"          # omitted — default is "1"
+  nav_page_1: alarm_page
+  nav_page_count: "1"
+  sleep_mode_default_state: "ON"
+  sleep_mode_default_timeout: "30"
 
-# Replace this with your actual platform if you aren't using ESP32.
-esp32:
-  board: esp32dev
+  # Flash / OTA partition layout. Default "4MB" → ~1.75MB per OTA app slot,
+  # fully OTA-friendly. Override to "16MB" on a >=16MB device whose firmware
+  # has outgrown that slot → ESPHome auto-sizes ~7.75MB app slots. NOTE: a
+  # partition-table change only takes effect via a one-time USB-serial flash
+  # (OTA never rewrites the partition table); erase_flash first.
+  #flash_size: "16MB"
 
-logger:
+#esp32_ble_tracker:
+#bluetooth_proxy:
+#  active: true
 
-api:
-  encryption:
-    key: "i6mILZD17XvOYOEZanJVJy/Sf9XnMZARZ3A/Dw+gZHM="
-
-ota:
-  - platform: esphome
+packages:
+  panel:
+    url: https://github.com/HomeOps/esphome-hass-panels
+    ref: v2.3.0
+    refresh: 0d
+    files:
+      - packages/core.yaml            # board + nav + sleep + connectivity
+      - packages/alarm-keypad-ui.yaml
+      # cover-ui / energy-ui omitted -> not compiled
+      # - packages/area-ui.yaml       
+      # - packages/thermostat-ui.yaml
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  ap:
-    ssid: Central Bedrrom Fallback Hotspot
-    password: "K0rfhZv3PFzp"
-
-captive_portal:
+  manual_ip:
+    static_ip: 192.168.81.110
+    gateway: 192.168.81.1
+    subnet: 255.255.255.0
