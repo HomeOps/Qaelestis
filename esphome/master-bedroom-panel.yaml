@@ -1,0 +1,25 @@
+esphome:
+  name: master-bedroom-panel
+  friendly_name: Master Bedroom Panel
+
+# Replace this with your actual platform if you aren't using ESP32.
+esp32:
+  board: esp32dev
+
+logger:
+
+api:
+  encryption:
+    key: "/N7TfL00pGWE0oKONLTdIxJ0jA3m/aMKfJEnygR6pRE="
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: Master Bedroom  Fallback Hotspot
+    password: "Tn3Zjdzl4oWN"
+
+captive_portal:
