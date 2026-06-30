@@ -9,7 +9,7 @@ esphome:
   min_version: 2025.11.0
 
 external_components:
-  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.11
+  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.12
     components: [midea_xye]
     refresh: 0s
   
@@ -55,6 +55,7 @@ uart:
 climate:
   - platform: midea_xye
     name: ${name}
+    address: 0x01              # the unit's rotary address dial
     period: 1s                  # Optional. Defaults to 1s
     timeout: 200ms              # Optional. Defaults to 100ms
     beeper: false               # Optional. Beep on commands.
