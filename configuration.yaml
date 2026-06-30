@@ -22,8 +22,11 @@ climate: !include climate.yaml
 mqtt: !include mqtt.yaml
 
 http:
-  ssl_certificate: /ssl/fullchain.pem
-  ssl_key: /ssl/privkey.pem
+  #ssl_certificate: /ssl/fullchain.pem
+  #ssl_key: /ssl/privkey.pem
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.30.33.0/24
 
 alarm_control_panel:
   - platform: manual
