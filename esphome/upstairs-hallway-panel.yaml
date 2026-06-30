@@ -5,15 +5,15 @@ substitutions:
   # nav_home_page: "1"          # omitted — default is "1"
   nav_page_1: alarm_page
   nav_page_count: "1"
-  #sleep_mode_default_state: "ON"
-  #sleep_mode_default_timeout: "30"
+  sleep_mode_default_state: "OFF"
+  sleep_mode_default_timeout: "-1"
 
   # Flash / OTA partition layout. Default "4MB" → ~1.75MB per OTA app slot,
   # fully OTA-friendly. Override to "16MB" on a >=16MB device whose firmware
   # has outgrown that slot → ESPHome auto-sizes ~7.75MB app slots. NOTE: a
   # partition-table change only takes effect via a one-time USB-serial flash
   # (OTA never rewrites the partition table); erase_flash first.
-  #flash_size: "16MB"
+  flash_size: "16MB"
 
 #esp32_ble_tracker:
 #bluetooth_proxy:
@@ -22,7 +22,7 @@ substitutions:
 packages:
   panel:
     url: https://github.com/HomeOps/esphome-hass-panels
-    ref: v2.3.1
+    ref: v2.3.2
     refresh: 0d
     files:
       - packages/core.yaml            # board + nav + sleep + connectivity
