@@ -13,7 +13,7 @@ substitutions:
   # has outgrown that slot → ESPHome auto-sizes ~7.75MB app slots. NOTE: a
   # partition-table change only takes effect via a one-time USB-serial flash
   # (OTA never rewrites the partition table); erase_flash first.
-  #flash_size: "16MB"
+  flash_size: "16MB"
 
 #esp32_ble_tracker:
 #bluetooth_proxy:
@@ -22,7 +22,7 @@ substitutions:
 packages:
   panel:
     url: https://github.com/HomeOps/esphome-hass-panels
-    ref: v2.3.0
+    ref: v2.3.2
     refresh: 0d
     files:
       - packages/core.yaml            # board + nav + sleep + connectivity
