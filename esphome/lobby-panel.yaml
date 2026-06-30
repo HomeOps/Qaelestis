@@ -5,8 +5,8 @@ substitutions:
   # nav_home_page: "1"          # omitted — default is "1"
   nav_page_1: alarm_page
   nav_page_count: "1"
-  sleep_mode_default_state: "ON"
-  sleep_mode_default_timeout: "30"
+  #sleep_mode_default_state: "ON"
+  #sleep_mode_default_timeout: "30"
 
   # Flash / OTA partition layout. Default "4MB" → ~1.75MB per OTA app slot,
   # fully OTA-friendly. Override to "16MB" on a >=16MB device whose firmware
