@@ -9,7 +9,7 @@ esphome:
   min_version: 2025.11.0
 
 external_components:
-  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.12
+  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.13
     components: [midea_xye]
     refresh: 0s
   
@@ -55,11 +55,16 @@ uart:
 climate:
   - platform: midea_xye
     name: ${name}
-    address: 0x01              # the unit's rotary address dial
     period: 1s                  # Optional. Defaults to 1s
     timeout: 200ms              # Optional. Defaults to 100ms
     beeper: false               # Optional. Beep on commands.
     use_fahrenheit: false
+    address: 0x01              # the unit's rotary address dial
+    auto_discover: true
+    discovery_after: 5
+    discovered_address:
+      name: "XYE Address"
+
     #follow_me_sensor: thermostat_follow_me_sensor  # Automatically updates follow_me from this sensor
     #internal_current_temperature:
     #  name: "Internal Current Temperature"
