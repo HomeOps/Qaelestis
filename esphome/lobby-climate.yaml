@@ -9,7 +9,7 @@ esphome:
   min_version: 2025.11.0
 
 external_components:
-  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.13
+  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.14
     components: [midea_xye]
     refresh: 0s
   
@@ -66,16 +66,16 @@ climate:
       name: "XYE Address"
 
     #follow_me_sensor: thermostat_follow_me_sensor  # Automatically updates follow_me from this sensor
-    #internal_current_temperature:
-    #  name: "Internal Current Temperature"
-    #fan_speed:
-    #  name: "Fan Speed"
+    internal_current_temperature:
+      name: "Internal Current Temperature"
+    fan_speed:
+      name: "Fan Speed"
     #defrost:
     #  name: "Defrost Active"
-    #compressor_active:
-    #  name: "Compressor Active"
-    #compressor_aware_action: true
-    #sync_fan_mode_from_device: true
+    compressor_active:
+      name: "Compressor Active"
+    compressor_aware_action: true
+    sync_fan_mode_from_device: true
     visual:                     # Optional. Example of visual settings override.
       min_temperature: 18 °C    # min: 17
       max_temperature: 28 °C    # max: 30
@@ -83,20 +83,20 @@ climate:
     supported_modes:            # Optional. 
       - COOL
       #- FAN_ONLY
-    #outdoor_temperature:        # Optional. Outdoor temperature sensor
-    #  name: Outside Temp
-    #temperature_2a:             # Optional. Inside coil temperature
-    #  name: Inside Coil Inlet Temp
-    #temperature_3:
-    #  name: Outside Coil Temperature
+    outdoor_temperature:        # Optional. Outdoor temperature sensor
+      name: Outside Temp
+    temperature_2a:             # Optional. Inside coil temperature
+      name: Inside Coil Inlet Temp
+    temperature_3:
+      name: Outside Coil Temperature
     timer_start:                # Optional. On timer duration
       name: Timer Start
     timer_stop:                 # Optional. Off timer duration
       name: Timer Stop
     error_flags:                # Optional.
       name: Error Flags
-    #protect_flags:              # Optional. 
-    #  name: Protect Flags
+    protect_flags:              # Optional. 
+      name: Protect Flags
     #static_pressure:
     #  name: Static Pressure
     #  min_value: 0
