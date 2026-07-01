@@ -1,0 +1,25 @@
+esphome:
+  name: kitchen-climate
+  friendly_name: Kitchen Climate
+
+# Replace this with your actual platform if you aren't using ESP32.
+esp32:
+  board: esp32dev
+
+logger:
+
+api:
+  encryption:
+    key: "7wr3PCC5Go1/GIWI5Jx0N2ENmJzmXiNpWhe3NmLq3Gg="
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: Kitchen Climate Fallback Hotspot
+    password: "dcRv2JkU6swb"
+
+captive_portal:
