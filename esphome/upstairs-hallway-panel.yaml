@@ -2,6 +2,8 @@ substitutions:
   name: upstairs-hallway-panel
   friendly_name: Upstairs Hallway Panel
   ip: 192.168.81.99
-  nav_page_count: "1"
+  cover_entity_id: cover.family_room_blinds
+  thermostat_entity_id: climate.family_room
+  nav_page_count: "3"
 packages:
   base: !include panels/common_area.yaml
