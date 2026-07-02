@@ -1,5 +1,5 @@
 substitutions:
   name: den
-  friendly_name: Den
+  friendly_name: Den AC
 packages:
   base: !include midea_xye/midea_xye.yaml
