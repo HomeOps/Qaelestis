@@ -1,5 +1,5 @@
 substitutions:
-  name: den-climate
-  friendly_name: Den Climate
+  name: den
+  friendly_name: Den
 packages:
   base: !include midea_xye/midea_xye.yaml
