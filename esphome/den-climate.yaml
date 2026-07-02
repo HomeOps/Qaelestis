@@ -72,8 +72,6 @@ climate:
       name: "Fan Speed"
     supported_swing_modes:
       - VERTICAL
-    #defrost:
-    #  name: "Defrost Active"
     compressor_active:
       name: "Compressor Active"
     compressor_aware_action: true
@@ -84,16 +82,14 @@ climate:
     supported_modes:            # Optional. 
       - COOL
       - FAN_ONLY
-    #outdoor_temperature:        # Optional. Outdoor temperature sensor
-    #  name: Outside Temp
     temperature_2a:             # Optional. Inside coil temperature
       name: Inside Coil Inlet Temp
     temperature_3:
       name: Outside Coil Temperature
     error_flags:                # Optional.
       name: Error Flags
-    #protect_flags:              # Optional. 
-    #  name: Protect Flags
+    protect_flags:              # Optional. 
+      name: Protect Flags
     #static_pressure:
     #  name: Static Pressure
     #  min_value: 0
