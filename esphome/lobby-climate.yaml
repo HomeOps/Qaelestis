@@ -1,5 +1,5 @@
 substitutions:
-  name: lobby-climate
-  friendly_name: Lobby Climate
+  name: lobby
+  ip: 192.168.81.167
 packages:
   base: !include midea_xye/midea_xye.yaml
