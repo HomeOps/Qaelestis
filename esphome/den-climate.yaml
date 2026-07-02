@@ -83,8 +83,8 @@ climate:
     supported_modes:            # Optional. 
       - COOL
       #- FAN_ONLY
-    outdoor_temperature:        # Optional. Outdoor temperature sensor
-      name: Outside Temp
+    #outdoor_temperature:        # Optional. Outdoor temperature sensor
+    #  name: Outside Temp
     temperature_2a:             # Optional. Inside coil temperature
       name: Inside Coil Inlet Temp
     temperature_3:
