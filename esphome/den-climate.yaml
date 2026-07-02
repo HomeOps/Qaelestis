@@ -9,7 +9,7 @@ esphome:
   min_version: 2025.11.0
 
 external_components:
-  - source: github://HomeOps/ESPHome-Midea-XYE@feat/target-temp-from-c0
+  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.15
     components: [midea_xye]
     refresh: 0s
   
@@ -30,7 +30,7 @@ api:
 # Allow Over-The-Air updates
 ota:
 - platform: esphome
-  password: "3ezrSY;rrwv>U,/5voKdU*&:"
+  password: !secret ota_password_ccm15
 
 wifi:
   ssid: !secret wifi_ssid
@@ -70,6 +70,8 @@ climate:
       name: "Internal Current Temperature"
     fan_speed:
       name: "Fan Speed"
+    supported_swing_modes:
+      - VERTICAL
     #defrost:
     #  name: "Defrost Active"
     compressor_active:
