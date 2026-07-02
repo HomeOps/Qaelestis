@@ -1,5 +1,6 @@
 substitutions:
   name: den
   friendly_name: Den AC
+  ip: 192.168.81.69
 packages:
   base: !include midea_xye/midea_xye.yaml
