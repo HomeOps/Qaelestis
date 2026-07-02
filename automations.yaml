@@ -78,7 +78,7 @@
   description: ''
   triggers:
   - entity_id:
-    - binary_sensor.pantry_door_sensor_window_door_is_open
+    - binary_sensor.pantry_door_sensor_open
     to: 'on'
     trigger: state
     from: 'off'
@@ -92,17 +92,17 @@
 - id: '1679529882466'
   alias: Turn pantry lights off when door closes
   description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.pantry_door_sensor_window_door_is_open
+  triggers:
+  - entity_id:
+    - binary_sensor.pantry_door_sensor_open
     to: 'off'
-  condition: []
-  action:
-  - service: light.turn_off
-    data: {}
+    trigger: state
+  conditions: []
+  actions:
+  - data: {}
     target:
       entity_id: light.pantry_lights
+    action: light.turn_off
   mode: single
 - id: '1681787559667'
   alias: 'Master Bedroom Sensor Inactivity '
