@@ -76,25 +76,20 @@ climate:
     #  name: "Defrost Active"
     compressor_active:
       name: "Compressor Active"
-    #compressor_aware_action: true
-    #sync_fan_mode_from_device: true
+    compressor_aware_action: true
     visual:                     # Optional. Example of visual settings override.
       min_temperature: 18 °C    # min: 17
       max_temperature: 28 °C    # max: 30
       temperature_step: 1 °C  # min: 0.5
     supported_modes:            # Optional. 
       - COOL
-      #- FAN_ONLY
+      - FAN_ONLY
     #outdoor_temperature:        # Optional. Outdoor temperature sensor
     #  name: Outside Temp
     temperature_2a:             # Optional. Inside coil temperature
       name: Inside Coil Inlet Temp
     temperature_3:
       name: Outside Coil Temperature
-    #timer_start:                # Optional. On timer duration
-    #  name: Timer Start
-    #timer_stop:                 # Optional. Off timer duration
-    #  name: Timer Stop
     error_flags:                # Optional.
       name: Error Flags
     #protect_flags:              # Optional. 
