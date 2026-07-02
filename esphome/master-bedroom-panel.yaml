@@ -1,15 +1,15 @@
 substitutions:
   name: master-bedroom-panel
   ip: 192.168.81.21
-  friendly_name: Master Bedroom Panel
-  
+  friendly_name: Master Bedroom Panel  
   alarm_entity_id: alarm_control_panel.home_alarm
-  nav_page_1: alarm_page
-  
   cover_entity_id: cover.master_bedroom_blinds
-  nav_page_2: cover_page
+  thermostat_entity_id: climate.master_bedroom
 
-  nav_page_count: "2"
+  nav_page_1: alarm_page
+  nav_page_2: cover_page
+  nav_page_3: thermostat_page
+  nav_page_count: "3"
   sleep_mode_default_state: "ON"
   sleep_mode_default_timeout: "30"
   flash_size: "16MB"
@@ -19,17 +19,11 @@ bluetooth_proxy:
   active: true
 
 packages:
-  panel:
+  keypad:
     url: https://github.com/HomeOps/esphome-hass-panels
-    ref: v2.3.2
+    ref: v2.1.1
+    file: esp32-hass-panel.yaml
     refresh: 0d
-    files:
-      - packages/core.yaml            # board + nav + sleep + connectivity
-      - packages/alarm-keypad-ui.yaml
-      - packages/cover-ui.yaml
-      # cover-ui / energy-ui omitted -> not compiled
-      # - packages/area-ui.yaml       
-      # - packages/thermostat-ui.yaml
 
 wifi:
   ssid: !secret wifi_ssid
