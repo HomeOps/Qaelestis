@@ -6,4 +6,4 @@ substitutions:
   #sleep_mode_default_state: "OFF"
   #sleep_mode_default_timeout: "-1"
 packages:
-  !include panels/common_area.yaml
+  - !include panels/common_area.yaml
