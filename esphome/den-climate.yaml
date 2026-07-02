@@ -7,11 +7,6 @@ esphome:
   friendly_name: ${friendly_name}
   name_add_mac_suffix: false
   min_version: 2025.11.0
-
-external_components:
-  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.15
-    components: [midea_xye]
-    refresh: 0s
   
 esp32:
   board: m5stack-atom
@@ -52,6 +47,11 @@ uart:
     sequence:
       - lambda: UARTDebug::log_hex(direction, bytes, ' ');
 
+external_components:
+  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.15
+    components: [midea_xye]
+    refresh: 0s
+
 climate:
   - platform: midea_xye
     name: ${name}
@@ -90,9 +90,6 @@ climate:
       name: Error Flags
     protect_flags:              # Optional. 
       name: Protect Flags
-    #static_pressure:
-    #  name: Static Pressure
-    #  min_value: 0
 
 sensor:
   - platform: wifi_signal
