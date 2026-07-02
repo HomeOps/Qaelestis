@@ -9,10 +9,10 @@ esphome:
   min_version: 2025.11.0
 
 external_components:
-  - source: github://HomeOps/ESPHome-Midea-XYE@fix/publish-current-temp-when-off
+  - source: github://HomeOps/ESPHome-Midea-XYE@feat/target-temp-from-c0
     components: [midea_xye]
     refresh: 0s
-
+  
 esp32:
   board: m5stack-atom
   framework:
@@ -64,7 +64,7 @@ climate:
     discovery_after: 5
     discovered_address:
       name: "XYE Address"
-
+    target_temperature_from_c0: true      # ← read setpoint from C0 (unit doesn't answer C4)
     #follow_me_sensor: thermostat_follow_me_sensor  # Automatically updates follow_me from this sensor
     internal_current_temperature:
       name: "Internal Current Temperature"
