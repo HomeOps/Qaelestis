@@ -9,10 +9,10 @@ esphome:
   min_version: 2025.11.0
 
 external_components:
-  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.14
+  - source: github://HomeOps/ESPHome-Midea-XYE@fix/publish-current-temp-when-off
     components: [midea_xye]
     refresh: 0s
-  
+
 esp32:
   board: m5stack-atom
   framework:
@@ -89,10 +89,10 @@ climate:
       name: Inside Coil Inlet Temp
     temperature_3:
       name: Outside Coil Temperature
-    timer_start:                # Optional. On timer duration
-      name: Timer Start
-    timer_stop:                 # Optional. Off timer duration
-      name: Timer Stop
+    #timer_start:                # Optional. On timer duration
+    #  name: Timer Start
+    #timer_stop:                 # Optional. Off timer duration
+    #  name: Timer Stop
     error_flags:                # Optional.
       name: Error Flags
     #protect_flags:              # Optional. 
