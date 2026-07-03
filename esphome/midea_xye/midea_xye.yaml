@@ -1,6 +1,6 @@
 esphome:
   name: ${name}
-  friendly_name: ${friendly_name}
+  friendly_name: "AC"
   name_add_mac_suffix: false
   min_version: 2025.11.0
   
@@ -26,6 +26,10 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  manual_ip:
+    static_ip: ${ip}
+    gateway: 192.168.81.1
+    subnet: 255.255.255.0    
 
 uart:
   # id: xye_bus
@@ -44,13 +48,13 @@ uart:
       - lambda: UARTDebug::log_hex(direction, bytes, ' ');
 
 external_components:
-  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.15
+  - source: github://HomeOps/ESPHome-Midea-XYE@v0.2.16
     components: [midea_xye]
     refresh: 0s
 
 climate:
   - platform: midea_xye
-    name: ${name}
+    name: None
     period: 1s                  # Optional. Defaults to 1s
     timeout: 200ms              # Optional. Defaults to 100ms
     beeper: false               # Optional. Beep on commands.
@@ -89,14 +93,14 @@ climate:
 
 sensor:
   - platform: wifi_signal
-    name: ${friendly_name} Wi-Fi Signal
+    name: "Wi-Fi Signal"
     update_interval: 60s
   - platform: uptime
     name: "Uptime"
     id: uptime_sec
     internal: true
   - platform: template
-    name: ${friendly_name} Uptime Days
+    name: "Uptime Days"
     lambda: |-
       return (id(uptime_sec).state/60)/60/24;
     icon: mdi:clock-start
