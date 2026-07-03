@@ -1,9 +1,10 @@
 substitutions:
-  nav_page_1: alarm_page
-  nav_page_2: cover_page
-  nav_page_3: thermostat_page
+  nav_page_1: cover_page
+  nav_page_2: thermostat_page
+  nav_page_3: alarm_page
   nav_page_count: "3"
   sleep_mode_default_state: "ON"
   sleep_mode_default_timeout: "30"
 packages:
-  base: !include common_area.yaml
+  base: !include panel.yaml
+
