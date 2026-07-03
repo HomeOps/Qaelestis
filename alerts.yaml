@@ -8,4 +8,25 @@ water_tank_low:
   can_acknowledge: true
   skip_first: false
   notifiers:
+    - criticallow_power:
+  name: Low Power
+  message: "Grid is down and battery is below 30%"
+  done_message: "Power situation is back to normal"
+  entity_id: binary_sensor.low_power
+  state: 'on'
+  repeat: 30
+  can_acknowledge: true
+  skip_first: false
+  notifiers:
+    - critical
+low_power:
+  name: Low Power
+  message: "Grid is down and battery is at {{ states('sensor.lg_ess_battery_state_of_charge') | round(0) }}%"
+  done_message: "Power situation is back to normal. Battery is at {{ states('sensor.lg_ess_battery_state_of_charge') | round(0) }}%"
+  entity_id: binary_sensor.low_power
+  state: 'on'
+  repeat: 30
+  can_acknowledge: true
+  skip_first: false
+  notifiers:
     - critical
