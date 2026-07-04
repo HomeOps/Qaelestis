@@ -110,10 +110,13 @@ sensor:
     accuracy_decimals: 3
     state_class: measurement
     filters:
-      - sliding_window_moving_average:
-          window_size: 5
-          send_every: 5
-
+      #- sliding_window_moving_average:
+      #    window_size: 5
+      #    send_every: 5
+      - median:
+          window_size: 31
+          send_every: 10
+      
   # Tank fill percentage. Depth = tank_height_m - measured distance.
   - platform: template
     name: "Water Tank Level"
