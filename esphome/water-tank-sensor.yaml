@@ -110,9 +110,7 @@ sensor:
     accuracy_decimals: 3
     state_class: measurement
     filters:
-      #- sliding_window_moving_average:
-      #    window_size: 5
-      #    send_every: 5
+      # Median rejects false echoes during drain/fill turbulence; a mean lets one 6.5m spike drag the level.
       - median:
           window_size: 31
           send_every: 10
