@@ -275,10 +275,21 @@ uart:
             if (bytes[i] < '0' || bytes[i] > '9') return;
             mm = mm * 10 + (bytes[i] - '0');
           }
-          id(tank_distance).publish_state(mm / 1000.0f);
+          float m = mm / 1000.0f;
+          id(tank_distance_raw).publish_state(m);   // unfiltered
+          id(tank_distance).publish_state(m);       // median-filtered
 
 sensor:
-  - platform: template
+  - platform: template                # UNFILTERED — analysis / drift record
+    name: "Tank Distance Raw"
+    id: tank_distance_raw
+    unit_of_measurement: "m"
+    device_class: distance
+    accuracy_decimals: 3
+    state_class: measurement
+    entity_category: diagnostic
+
+  - platform: template                # FILTERED — everything downstream uses this
     name: "Tank Distance"
     id: tank_distance
     unit_of_measurement: "m"
@@ -286,10 +297,46 @@ sensor:
     accuracy_decimals: 3
     state_class: measurement
     filters:
-      - sliding_window_moving_average: { window_size: 5, send_every: 5 }
+      - median: { window_size: 31, send_every: 10 }
 ```
 
 `hrxl_maxsonar_wr` is **not** used — see §6.
+
+### Raw *and* filtered — both are published
+
+Every frame is published **twice**: unfiltered to `tank_distance_raw`, and
+through the median to `tank_distance`. Publishing a filtered value only
+would hide the sensor's real behaviour — echo spikes, dropouts, thermal
+bias, slow drift — behind the smoother, leaving no way to tell a genuinely
+stable tank from a filter masking a degrading sensor.
+
+Because both sensors receive the *same* samples at the *same* instants,
+`raw - filtered` is exactly the per-sample filter residual — compute it in
+Home Assistant (or offline from the recorder history) to size the median
+window and to see how noisy the acoustic path is at each fill level.
+
+Division of labour:
+
+| Entity | Filtered? | Use |
+|---|---|---|
+| `Tank Distance Raw` | no | drift/error analysis, filter tuning |
+| `Tank Distance` | median 31 / send 10 | %, litres, fault detection |
+
+**Never add a filter to `tank_distance_raw`** — that entity's whole purpose
+is to be untouched. Tune `tank_distance`'s filter instead.
+
+A **median** is used, not a moving average: a single 6.5 m "no target"
+frame drags a mean upward by ~1 m, whereas the median ignores it entirely
+unless it persists across most of the window. At the sensor's ~6 Hz free-run
+rate, `window_size: 31, send_every: 10` means a ~5 s window publishing every
+~1.7 s — fast enough for fault detection, slow enough to ride out the
+turbulence of a fill or draw.
+
+> `tank_distance_raw` publishes at the full ~6 Hz, which is a substantial
+> number of rows for the Home Assistant recorder. If long-term retention
+> becomes a problem, either exclude it in `recorder:` once the analysis is
+> done, or add a `- throttle: 1s` filter to *that* sensor (accepting the
+> reduced resolution).
 
 ### No range gate — faults must stay visible
 
@@ -310,13 +357,15 @@ fault conditions are surfaced explicitly (next section).
 
 ### Fault detection
 
-Two `binary_sensor`s (device class `problem`) watch `tank_distance` and
-turn **on** when it leaves the normal tank window. A `delayed_on: 30s`
-filter ignores brief spikes — they trip only on a sustained condition.
+Two `binary_sensor`s (device class `problem`) watch the **filtered**
+`tank_distance` and turn **on** when it leaves the normal tank window.
+Filtered, not raw: a lone false echo must not raise an overflow alarm.
+A `delayed_on: 30s` filter is the second guard — they trip only on a
+sustained condition.
 
 ```yaml
 substitutions:
-  overflow_distance_m: "0.30"    # closer than this = overfull / overflowing
+  overflow_distance_m: "0.15"    # closer than this = overfull / overflowing
   no_target_distance_m: "2.50"   # beyond this = no target / sensor displaced
 
 binary_sensor:
@@ -355,14 +404,15 @@ tune after install:
 
 ```yaml
 substitutions:
-  tank_height_m:   "2.00"   # sensor-face-to-FLOOR distance (empty-tank reading)
-  tank_capacity_l: "5000"   # rated capacity, litres
+  tank_height_m:        "2.00"    # sensor-face-to-FLOOR distance (empty-tank reading)
+  tank_capacity_l:      "5000"    # rated capacity, litres
+  tank_full_distance_m: "0.200"   # reading with the tank brim-full
 
   - platform: template          # Water Tank Level, %
     lambda: |-
       if (isnan(id(tank_distance).state)) return NAN;
       float depth_m = ${tank_height_m}f - id(tank_distance).state;
-      return clamp(depth_m / ${tank_height_m}f * 100.0f, 0.0f, 100.0f);
+      return clamp(depth_m / (${tank_height_m}f - ${tank_full_distance_m}f) * 100.0f, 0.0f, 100.0f);
 
   - platform: template          # Water Tank Volume, L
     lambda: |-
@@ -371,6 +421,14 @@ substitutions:
       float full_l  = ${tank_capacity_l}.0f;
       return clamp(depth_m / ${tank_height_m}f * full_l, 0.0f, full_l);
 ```
+
+> **Known inconsistency — not yet resolved.** The two readings use
+> *different* denominators: `%` divides by the usable span
+> (`tank_height_m - tank_full_distance_m` = 1.80 m) while litres divides by
+> the full `tank_height_m` (2.00 m). A brim-full tank therefore reads
+> **100 % but only 4500 L**. Decide which reference is wanted — litres
+> against rated capacity, or litres against the floor — and make both
+> formulas agree.
 
 `tank_height_m` is the sensor-face-to-bottom distance — the reading you
 would see with the tank drained. The ~2.0 m value is an estimate from the
@@ -391,6 +449,11 @@ A `wifi_signal` sensor publishes the Wi-Fi RSSI as **"Wi-Fi Signal"**:
 
 Use it to judge how much the enclosure attenuates Wi-Fi (see §8). Healthy
 is better than −70 dBm; −80 dBm or worse means dropped readings.
+
+One further diagnostic entity covers the sensor itself: **"Tank Distance
+Raw"** (unfiltered, every frame). It is `entity_category: diagnostic`, so
+it stays out of the main dashboard while still being recorded — see "Raw
+*and* filtered" above.
 
 ---
 

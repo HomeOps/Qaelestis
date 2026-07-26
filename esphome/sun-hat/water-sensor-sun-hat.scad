@@ -50,11 +50,17 @@ arm_d     = 5;             // arm rod diameter (mm)
 arm_h     = 170;           // arm rod length (17 cm)
 
 // Pin / socket friction joints (same Ø4 pin both ends; Ø(arm_d) shoulder = stop).
-pin_d       = 4;           // pin diameter
+pin_d       = 4;           // nominal pin diameter (also sizes the socket holes)
+pin_fit     = 0.4;         // arm pins printed UNDERSIZE by this much (Ø). FDM pegs print
+                           //   fat and holes print thin, so the nominal Ø4-into-Ø4.1 fit
+                           //   comes out as interference and won't seat — shrinking only
+                           //   the pin (not the socket) restores real clearance.
+                           //   Too loose? lower toward 0.3. Won't seat? raise toward 0.5.
 pin_len     = 10;          // pin engagement depth
 socket_wall = 2.5;         // wall around each socket
 base_fit    = 0.10;        // RING socket clearance — TIGHT (fixed bottom joint)
 top_fit     = 0.15;        // UMBRELLA socket clearance — friction (removable top)
+pin_print_d = pin_d - pin_fit;  // actual printed pin diameter (both ends)
 base_boss_h = pin_len + 3; // ring socket-boss height (gives the bottom pin depth)
 
 // ---- Umbrella (canopy) -----------------------------------------------------
@@ -133,10 +139,10 @@ module ring_part() {
 // ring socket; the tilted Ø5 rod rises; a Ø4 pin points UP into the umbrella.
 // Both pins are vertical so the parts assemble/disassemble straight in-and-out.
 module arm() {
-    translate([0, 0, -pin_len]) cylinder(d = pin_d, h = pin_len + 1, $fn = 32);  // bottom pin (down)
-    rotate([0, arm_angle, 0]) cylinder(d = arm_d, h = arm_h, $fn = 48);          // tilted rod
-    translate([arm_h * sin(arm_angle), 0, arm_h * cos(arm_angle) - 1])           // top pin (up)
-        cylinder(d = pin_d, h = pin_len + 1, $fn = 32);
+    translate([0, 0, -pin_len]) cylinder(d = pin_print_d, h = pin_len + 1, $fn = 32);  // bottom pin (down)
+    rotate([0, arm_angle, 0]) cylinder(d = arm_d, h = arm_h, $fn = 48);                // tilted rod
+    translate([arm_h * sin(arm_angle), 0, arm_h * cos(arm_angle) - 1])                 // top pin (up)
+        cylinder(d = pin_print_d, h = pin_len + 1, $fn = 32);
 }
 
 // ---- UMBRELLA -------------------------------------------------------------
