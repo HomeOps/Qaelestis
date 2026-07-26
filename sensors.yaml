@@ -1,6 +1,6 @@
 - platform: rest
   name: Aboveground Water Tank Pressure
-  resource: http://192.168.10.73/get_sensors
+  resource: http://192.168.80.72/get_sensors
   scan_interval: 30
   timeout: 80
   value_template: >
@@ -23,10 +23,3 @@
   #sampling_size: 20
   max_age:
     minutes: 60
-- platform: template
-  sensors:
-    failed_zwave:
-      value_template: >
-        {{ states | selectattr("entity_id", "search", "node_status") |
-           selectattr('state', 'in', 'dead, unavailable, unknown') |
-           map(attribute='entity_id') | list }}

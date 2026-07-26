@@ -1,0 +1,8 @@
+substitutions:
+  name: master-bedroom-panel
+  ip: 192.168.81.21
+  friendly_name: Master Bedroom Panel
+  cover_entity_id: cover.master_bedroom_blinds
+  thermostat_entity_id: climate.master_bedroom
+packages:
+  base: !include panels/bedroom.yaml

@@ -2,17 +2,12 @@
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
 
-# Text to speech
-tts:
-  - platform: google_translate
-
 group: !include groups.yaml
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 notify: !include notify.yaml
 sensor: !include sensors.yaml
-binary_sensor: !include binary_sensors.yaml
 template: !include templates.yaml
 alert: !include alerts.yaml
 python_script:
@@ -22,8 +17,11 @@ climate: !include climate.yaml
 mqtt: !include mqtt.yaml
 
 http:
-  ssl_certificate: /ssl/fullchain.pem
-  ssl_key: /ssl/privkey.pem
+  #ssl_certificate: /ssl/fullchain.pem
+  #ssl_key: /ssl/privkey.pem
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.30.33.0/24
 
 alarm_control_panel:
   - platform: manual

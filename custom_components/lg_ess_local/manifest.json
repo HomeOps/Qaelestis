@@ -1,0 +1,14 @@
+{
+  "domain": "lg_ess_local",
+  "name": "LG ESS (local)",
+  "codeowners": [
+    "@ocalvo"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/HomeOps/HASS-LG-ESS-Local",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/HomeOps/HASS-LG-ESS-Local/issues",
+  "requirements": [],
+  "version": "0.1.1"
+}

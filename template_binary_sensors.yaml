@@ -1,2 +1,12 @@
 - name: "Main Tank Water Low"
   state: "{{ states('sensor.aboveground_water_tank_level') | float(default=99) <= 30 }}"
+- name: "Power Outage"
+  device_class: power
+  state: >
+    {{ is_state('binary_sensor.solaredge_i1_grid_status', 'off')
+       or is_state('binary_sensor.solaredge_i2_grid_status', 'off') }}
+- name: "Low Power"
+  device_class: battery
+  state: >
+    {{ is_state('binary_sensor.power_outage', 'on')
+       and (states('sensor.lg_ess_battery_state_of_charge') | float(100) < 30) }}

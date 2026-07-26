@@ -1,0 +1,8 @@
+substitutions:
+  name: guest-bedroom-panel
+  friendly_name: Guest Bedroom Panel
+  ip: 192.168.81.216
+  cover_entity_id: cover.guest_bedroom_blinds
+  thermostat_entity_id: climate.guest_bedroom
+packages:
+  base: !include panels/bedroom.yaml

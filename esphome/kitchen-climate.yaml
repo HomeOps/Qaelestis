@@ -1,0 +1,5 @@
+substitutions:
+  name: kitchen
+  ip: 192.168.81.45
+packages:
+  base: !include midea_xye/midea_xye.yaml

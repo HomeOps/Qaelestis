@@ -23,3 +23,8 @@
       {{ states('sensor.underground_water_tank_level') }}
     {% endif %}
 
+- name: failed_zwave
+  state: >
+    {{ states | selectattr("entity_id", "search", "node_status") |
+       selectattr('state', 'in', 'dead, unavailable, unknown') |
+       map(attribute='entity_id') | list }}

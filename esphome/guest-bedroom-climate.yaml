@@ -1,0 +1,5 @@
+substitutions:
+  name: guestbathroom
+  ip: 192.168.81.230
+packages:
+  base: !include midea_xye/midea_xye.yaml

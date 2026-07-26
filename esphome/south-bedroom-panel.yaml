@@ -1,0 +1,8 @@
+substitutions:
+  name: south-bedroom-panel
+  friendly_name: South Bedroom Panel
+  ip: 192.168.81.221
+  cover_entity_id: cover.south_bedroom_blinds
+  thermostat_entity_id: climate.south_bedroom
+packages:
+  base: !include panels/bedroom.yaml

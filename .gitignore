@@ -46,4 +46,9 @@ ui-lovelace.yaml
 /pyvenv.cfg
 
 home-assistant.log.*
+.cache
+.ha_run.lock
+
+oscar
+
 

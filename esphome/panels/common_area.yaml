@@ -1,0 +1,6 @@
+substitutions:
+  nav_page_1: alarm_page
+  nav_page_2: thermostat_page
+  nav_page_count: "2"
+packages:
+  base: !include panel.yaml

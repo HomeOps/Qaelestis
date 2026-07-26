@@ -1,0 +1,8 @@
+substitutions:
+  name: lobby-panel
+  friendly_name: Lobby Panel
+  ip: 192.168.81.160
+  thermostat_entity_id: climate.lobby_ac
+  nav_page_count: "2"
+packages:
+  base: !include panels/common_area.yaml

@@ -1,0 +1,8 @@
+substitutions:
+  name: central-bedroom-panel
+  friendly_name: Central Bedroom Panel
+  ip: 192.168.81.110
+  cover_entity_id: cover.central_bedroom_blinds
+  thermostat_entity_id: climate.central_bedroom
+packages:
+  base: !include panels/bedroom.yaml
