@@ -685,4 +685,25 @@
     motion_entity: '{{ trigger.entity_id }}'
     last_changed: '{{ as_timestamp(states[motion_entity].last_changed) }}'
     now_ts: '{{ as_timestamp(now()) }}'
-
+- id: '1784248007494'
+  alias: Turn pool pump dialy
+  description: Turn pool pump daily
+  triggers:
+  - trigger: time
+    at: 09:30:00
+    weekday:
+    - sun
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+  conditions: []
+  actions:
+  - action: switch.turn_on
+    metadata: {}
+    target:
+      entity_id: switch.pool_pentair_pump
+    data: {}
+  mode: single
