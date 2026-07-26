@@ -101,6 +101,20 @@ uart:
           id(tank_distance_raw).publish_state(m);
           id(tank_distance).publish_state(m);
 
+          // Optional temperature field: ' ' 'T' + 3 digits. Parsed AFTER the
+          // distance is already published, so a missing or malformed temp
+          // field can never cost us a range reading. Silently skipped if the
+          // frame is distance-only, or if the field is non-numeric.
+          if (bytes.size() < 10 || bytes[5] != ' ' || bytes[6] != 'T')
+            return;
+          int t = 0;
+          for (int i = 7; i <= 9; i++) {
+            if (bytes[i] < '0' || bytes[i] > '9')
+              return;
+            t = t * 10 + (bytes[i] - '0');
+          }
+          id(sensor_temperature).publish_state(t);          
+
 sensor:
   # UNFILTERED distance, one state per frame (~6 Hz). Exists so the
   # sensor's real behaviour — spikes, dropouts, drift — is recorded for
@@ -114,6 +128,28 @@ sensor:
     state_class: measurement
     entity_category: diagnostic
 
+  # Air temperature from the WRMT frame's 'Tnnn' field — the sensor's own
+  # compensation reading, i.e. the air the sound actually travels through.
+  #
+  # *** SCALING UNVERIFIED *** — assumed to be plain integer degrees C, which
+  # fits the documented example frame 'R2435 T012'. CONFIRM against a real
+  # thermometer on the first reading: a Costa Rica afternoon should show
+  # ~30-35. If it reads roughly half or double that, the field is in some
+  # other unit and this needs a scale factor.
+  #
+  # Why it matters: the effective minimum range is c*t_blank/2, and
+  # c = 331.3 + 0.606*T, so hot air pushes the blind zone ~3% further out
+  # than cool air. That is the suspected cause of the echo-mode flip seen
+  # on 2026-07-26 — see calestis-water-level-sensor.md.
+  - platform: template
+    name: "Sensor Air Temperature"
+    id: sensor_temperature
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 0
+    state_class: measurement
+    entity_category: diagnostic
+    
   # Same samples as 'tank_distance_raw', median-filtered. Everything
   # downstream (%, litres, faults) reads this one.
   - platform: template
