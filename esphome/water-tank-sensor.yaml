@@ -69,7 +69,8 @@ captive_portal:
 # (mm) AND a temperature field. ESPHome's hrxl_maxsonar_wr only parses the
 # plain "Rnnnn\r" frame, so it is NOT used. The frame is parsed below: the
 # UART debug feature splits the stream on CR and the lambda reads the 4
-# distance digits and publishes them (in metres) to 'tank_distance'.
+# distance digits and publishes them (in metres) to 'tank_distance_raw'
+# (unfiltered) and 'tank_distance' (median-filtered).
 uart:
   id: maxbotix_uart
   rx_pin: GPIO33
@@ -96,12 +97,25 @@ uart:
               return;
             mm = mm * 10 + (bytes[i] - '0');
           }
-          id(tank_distance).publish_state(mm / 1000.0f);
+          float m = mm / 1000.0f;
+          id(tank_distance_raw).publish_state(m);
+          id(tank_distance).publish_state(m);
 
 sensor:
-  # Raw distance from the sensor face to the water surface, in metres.
-  # Published by the UART frame parser above — every well-formed reading,
-  # never range-gated, so faults stay visible.
+  # UNFILTERED distance, one state per frame (~6 Hz). Exists so the
+  # sensor's real behaviour — spikes, dropouts, drift — is recorded for
+  # later analysis. Never add a filter here; filter 'tank_distance'.
+  - platform: template
+    name: "Tank Distance Raw"
+    id: tank_distance_raw
+    unit_of_measurement: "m"
+    device_class: distance
+    accuracy_decimals: 3
+    state_class: measurement
+    entity_category: diagnostic
+
+  # Same samples as 'tank_distance_raw', median-filtered. Everything
+  # downstream (%, litres, faults) reads this one.
   - platform: template
     name: "Tank Distance"
     id: tank_distance
