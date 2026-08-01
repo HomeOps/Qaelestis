@@ -1,27 +1,100 @@
+# Aboveground tank level from the hydrostatic pressure sensor.
+#
+# Recalibrated 2026-07-31. The previous formula was a quadratic
+# (a=-1/1500, b=10/24+0.15, c=0) which mapped the tank's real working range
+# of 243-329 hPa onto 98.3-114.3 %, so the tank always read full and often
+# exceeded 100 %. That was the persistent 110 % reading. Scaling problem,
+# not a broken instrument.
+#
+# New fit, against the MB7851 ultrasonic sensor: 327k samples over 5.2 days,
+# paired on 15-min buckets where the ultrasonic was provably trustworthy
+# (one distance mode holding >=98 % of samples, outside the 05:00-09:00 fill
+# window where pump head contaminates pressure), then a robust fit of
+# distance on pressure with 2-sigma clipping.
+#
+#   57 of 70 pairs retained      r = -0.9984
+#   distance_m = 2.04531 - 0.005593 * P
+#   level_pct  = -2.5171 + 0.31070 * P
+#   RMSE 11 mm (0.61 percentage points) | median 9 mm | p90 17 mm
+#   holdout (train 34 / test 23): median 6 mm, p90 19 mm
+#
+# The 13 rejected pairs were found by the clipping, not chosen by hand, and
+# landed exactly on the two stretches independently known to be ultrasonic
+# false modes (07-28 15:00-19:15, 07-26 20:00-20:30).
+#
+# CAVEATS
+#   * Fitted over 243-329 hPa = 73-100 % full. BELOW 73 % IS EXTRAPOLATION;
+#     the tank never went below 71 % in the source data.
+#   * Implied scale is 178.8 hPa/m; true hydrostatic is 98.07 hPa/m, so this
+#     device does not report real hPa despite the unit label. Fine for an
+#     empirical fit, but if the device is ever recalibrated or its unit
+#     "corrected", THIS BREAKS SILENTLY and must be re-derived.
+#   * Assumes tank height 2.00 m, full-distance 0.20 m, matching the ESPHome
+#     config. Both are still estimates - measuring the tank improves all of it.
+#   * The old `else` branch read this sensor's OWN entity
+#     (sensor.aboveground_water_tank_level), a self-reference. Replaced with
+#     an `availability` guard so it goes unavailable instead of feeding on
+#     its own previous state.
 - name: Aboveground Water Tank Level
   unit_of_measurement: '%'
+  state_class: measurement
+  icon: mdi:water-percent
+  availability: >
+    {{ states('sensor.aboveground_water_tank_pressure')
+       not in ['unknown', 'unavailable', 'none', ''] }}
   state: >
-    {% if states('sensor.aboveground_water_tank_pressure') not in ['unknown', 'unavailable'] %}
-      {% set p = states('sensor.aboveground_water_tank_pressure') | float %}
-      {% set a = (-1/1500) | float %}
-      {% set b = ((10.0/24.0) + 0.15) | float %}
-      {% set c = 0 | float %}
-      {{ ((p | multiply(p) | multiply(a)) + (p | multiply(b)) + c) | round(2) }}
-    {% else %}
-      {{ states('sensor.aboveground_water_tank_level') }}
-    {% endif %}
+    {% set p = states('sensor.aboveground_water_tank_pressure') | float(0) %}
+    {% set pct = -2.5171 + 0.31070 * p %}
+    {{ [0, [100, pct] | min] | max | round(2) }}
+  attributes:
+    calibration: 'level_pct = -2.5171 + 0.31070 * P   (r=-0.9984, RMSE 11 mm, 2026-07-31)'
+    fitted_range_hpa: '243-329'
+
+# Surface distance implied by pressure. Directly comparable to
+# sensor.water_tank_sensor_tank_distance from the ultrasonic: when the two
+# disagree by more than ~50 mm, the ultrasonic is sitting in a false mode.
+- name: Aboveground Water Tank Distance
+  unit_of_measurement: 'm'
+  device_class: distance
+  state_class: measurement
+  icon: mdi:arrow-expand-down
+  availability: >
+    {{ states('sensor.aboveground_water_tank_pressure')
+       not in ['unknown', 'unavailable', 'none', ''] }}
+  state: >
+    {% set p = states('sensor.aboveground_water_tank_pressure') | float(0) %}
+    {{ (2.04531 - 0.005593 * p) | round(3) }}
+
+# Litres. Divides by full height 2.00 m while the percentage divides by
+# (2.00 - 0.20), deliberately matching the existing ESPHome sensors so the
+# two agree. A brim-full tank therefore reads 100 % but 4500 L. Do not
+# "fix" one without the other.
+- name: Aboveground Water Tank Volume
+  unit_of_measurement: 'L'
+  device_class: volume_storage
+  state_class: measurement
+  icon: mdi:water
+  availability: >
+    {{ states('sensor.aboveground_water_tank_pressure')
+       not in ['unknown', 'unavailable', 'none', ''] }}
+  state: >
+    {% set p = states('sensor.aboveground_water_tank_pressure') | float(0) %}
+    {% set d = 2.04531 - 0.005593 * p %}
+    {% set l = (2.00 - d) / 2.00 * 5000 %}
+    {{ [0, [5000, l] | min] | max | round(0) }}
+
 - name: Aboveground Water Tank Level By Distance
   unit_of_measurement: '%'
   state: >
     {{ ((255.00 - (states('sensor.main_tank_water_level_sensor_distance_max') | float))/245.00) | multiply(100.00) | round(2) }}
-- name: Underground Water Tank Level
-  unit_of_measurement: '%'
-  state: >
-    {% if states('sensor.underground_water_tank_pressure') not in ['unknown', 'unavailable'] %}
-      {{ (states('sensor.underground_water_tank_pressure') | float - 82.3636363636364) | multiply(0.244444444444444) | round(2) }}
-    {% else %}
-      {{ states('sensor.underground_water_tank_level') }}
-    {% endif %}
+# REMOVED 2026-07-31 at owner's instruction: "Underground Water Tank Level"
+# was broken. It carried the same self-referential bug as the aboveground
+# sensor (its `else` branch read its own entity), and its calibration
+# (offset 82.36, slope 0.2444) was never validated against anything.
+# sensor.underground_water_tank_pressure is untouched and still available if
+# this is ever rebuilt. Checked before removal: nothing in /config YAML
+# referenced sensor.underground_water_tank_level - only .storage
+# (voice-assistant exposure and the restore-state cache), which is harmless.
 
 - name: failed_zwave
   state: >
