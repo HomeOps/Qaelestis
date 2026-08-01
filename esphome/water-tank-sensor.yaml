@@ -23,6 +23,33 @@ substitutions:
   overflow_distance_m: "0.15"
   no_target_distance_m: "2.50"
 
+  # low_water_distance_m: NEW. Threshold for the UNGATED low-water alarm
+  #   below. 1.55 m ≈ 25 % full. *** Align this with whatever
+  #   alert.water_tank_low already uses, or the two will disagree. ***
+  low_water_distance_m: "1.55"
+
+  # ── Filter constants — every one of these is a MEASURED value ────────
+  # Derived from 327k raw samples, 2026-07-26..31, scored against the
+  # tank's independent hydrostatic pressure sensor. See
+  # water-tank-sensor-echo-remediation.md before changing any of them.
+  #
+  # filter_quantile: 0.05. Multipath is geometrically LONGER than the
+  #   direct echo, so the truth lives in the low tail. Measured median
+  #   error vs the pressure reference: 5th pct 115 mm, median 310 mm.
+  #   NOT 0.02 — during a fill the inflow stream returns SHORT (4,671
+  #   samples below 0.18 m over 5 days, all inside fill hours, up to 34 %
+  #   of samples in the worst hour) and the 2nd percentile sits in it.
+  # max_jump_m: 0.030. Fastest real drawdown measured was 434 mm in 2 h
+  #   (~3.6 mm/min, ~0.6 mm per emission), so this still leaves ~50x
+  #   headroom. Swept p90 error: 150 mm -> 269, 50 mm -> 181, 30 mm ->
+  #   181, 20 mm -> 237 (too tight, starts blocking ordinary drift).
+  # resync_minutes: 360. THIS IS THE NOISE CONTROL, not max_jump_m.
+  #   Spike rate (a 15-min bucket >100 mm off its own neighbours):
+  #   30 min -> 9.1 %, 120 min -> 2.2 %, 360 min -> 0.8 %.
+  filter_quantile: "0.05"
+  max_jump_m: "0.030"
+  resync_minutes: "360"
+
 esphome:
   name: water-tank-sensor
   friendly_name: Water Tank Sensor
@@ -52,6 +79,17 @@ wifi:
 
 captive_portal:
 
+# NEW — state for the jump gate on 'tank_distance'.
+globals:
+  - id: gate_last
+    type: float
+    restore_value: no
+    initial_value: 'NAN'
+  - id: gate_seen_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+
 # MB7851-B36 (XL-TankSensor-WRMT) serial build — see calestis-water-level-sensor.md.
 #
 # Pin order confirmed by multimeter: with the engraved "MB7851-B36" label
@@ -66,11 +104,12 @@ captive_portal:
 # Pin 4 (RX/trigger) left open -> sensor free-runs and auto-transmits.
 #
 # Frame format: the WRMT variant emits "Rnnnn Tnnn\r" — a distance field
-# (mm) AND a temperature field. ESPHome's hrxl_maxsonar_wr only parses the
-# plain "Rnnnn\r" frame, so it is NOT used. The frame is parsed below: the
-# UART debug feature splits the stream on CR and the lambda reads the 4
-# distance digits and publishes them (in metres) to 'tank_distance_raw'
-# (unfiltered) and 'tank_distance' (median-filtered).
+# (mm) and a TEACH-CONFIDENCE field (not temperature; the MB7851 emits no
+# temperature over serial). ESPHome's hrxl_maxsonar_wr only parses the
+# plain "Rnnnn\r" frame, so that component is NOT used. The frame is
+# parsed below: the UART debug feature splits the stream on CR and the
+# lambda reads the 4 distance digits and publishes them (in metres) to
+# 'tank_distance_raw' (unfiltered) and 'tank_distance' (filtered).
 uart:
   id: maxbotix_uart
   rx_pin: GPIO33
@@ -82,7 +121,7 @@ uart:
       delimiter: "\r"           # one full frame per sequence call
     sequence:
       - lambda: |-
-          // WRMT frame: 'R' + 4 distance digits + ' ' + 'T' + 3 temp digits + CR.
+          // WRMT frame: 'R' + 4 distance digits + ' ' + 'T' + 3 confidence digits + CR.
           // Reject ONLY structurally-corrupt frames (line noise). EVERY
           // well-formed reading is published — including out-of-tank values
           // such as ~50 mm (water/object at the sensor) or ~6500 mm (no
@@ -100,6 +139,7 @@ uart:
           float m = mm / 1000.0f;
           id(tank_distance_raw).publish_state(m);
           id(tank_distance).publish_state(m);
+          id(tank_distance_fast).publish_state(m);
 
           // Optional teach-confidence field: ' ' 'T' + 3 digits (0-100).
           // NOT temperature — the MB7851 emits no temperature over serial;
@@ -115,11 +155,11 @@ uart:
             t = t * 10 + (bytes[i] - '0');
           }
           id(sensor_teach_confidence).publish_state(t);
-          
+
 sensor:
-  # UNFILTERED distance, one state per frame (~6 Hz). Exists so the
-  # sensor's real behaviour — spikes, dropouts, drift — is recorded for
-  # later analysis. Never add a filter here; filter 'tank_distance'.
+  # UNFILTERED distance, one state per frame. Exists so the sensor's real
+  # behaviour — spikes, dropouts, drift — is recorded for later analysis.
+  # Never add a filter here; filter 'tank_distance'.
   - platform: template
     name: "Tank Distance Raw"
     id: tank_distance_raw
@@ -132,10 +172,14 @@ sensor:
   # Teach confidence from the frame's 'Tnnn' field — 0-100, the sensor's
   # own confidence in its stored empty-tank calibration.
   #
-  # MaxBotix recommends retraining whenever this drops below 75; a fully
-  # calibrated sensor reads 100. Observed 2026-07-26: pinned at exactly
-  # 100 across every sample, so calibration is NOT the cause of the
-  # short-range echo problems seen the same day.
+  # *** DO NOT GATE READINGS ON THIS. *** MaxBotix says retrain below 75,
+  # which invites using it as a quality signal. Measured over 5 days it is
+  # the WRONG WAY ROUND: buckets at T=0-1 averaged 3.3 distance modes and
+  # 0.62 clean-fraction, while T=20-100 averaged 4.3 modes and 0.50. The
+  # cleanest ten hours of the week (single mode, 100 % clean, ±2 mm) ran at
+  # T=0 throughout. T=0 is the resting state, not a fault; the 0->100 ramps
+  # are re-teach cycles that fire AFTER the level moves. Gating on high
+  # confidence would discard the best data. Diagnostic only.
   - platform: template
     name: "Sensor Teach Confidence"
     id: sensor_teach_confidence
@@ -144,9 +188,9 @@ sensor:
     accuracy_decimals: 0
     state_class: measurement
     entity_category: diagnostic
-    
-  # Same samples as 'tank_distance_raw', median-filtered. Everything
-  # downstream (%, litres, faults) reads this one.
+
+  # PRIMARY filtered distance. Everything user-facing (%, litres) reads
+  # this one. Was `median: {31, 10}` — replaced, see below.
   - platform: template
     name: "Tank Distance"
     id: tank_distance
@@ -155,11 +199,88 @@ sensor:
     accuracy_decimals: 3
     state_class: measurement
     filters:
-      # Median rejects false echoes during drain/fill turbulence; a mean lets one 6.5m spike drag the level.
-      - median:
-          window_size: 31
-          send_every: 10
-      
+      # A MEDIAN IS THE BUG, NOT THE FIX. It sits on whichever false mode
+      # holds the majority of the window. Measured against the independent
+      # pressure reference over 243 buckets: median 310 mm error (448 mm
+      # during disturbance), 5th percentile 115 mm (70 mm). Do not revert.
+      - quantile:
+          window_size: 120
+          send_every: 20
+          send_first_at: 20
+          quantile: ${filter_quantile}
+
+      # Asymmetric jump gate.
+      #
+      # Needed because the sensor sometimes settles into a CLEAN,
+      # single-moded, but WRONG long state — one measured hour had 98 % of
+      # samples agreeing on 0.78 m while the reference said 0.37 m. No
+      # statistical filter sees through a unimodal distribution; only the
+      # SIZE of the step into it gives it away.
+      #
+      # NEVER make this symmetric. A fill drops 450-500 mm in under an hour
+      # and must track instantly; real drainage creeps ~0.6 mm per emission.
+      # Rate limiting was also tried and rejected: it lets a reflection in
+      # slowly, producing a smooth 20-point phantom drain that reads exactly
+      # like losing water.
+      #
+      # KNOWN LIMIT, accepted deliberately: a 6 h resync also delays a
+      # genuine large drawdown. Tue 07-28 (false, pressure flat) and
+      # Wed 07-29 (real, pressure 322->253 hPa) are indistinguishable from
+      # the distance stream alone. That is why the low-water alarm below
+      # reads the UNGATED sensor instead of this one.
+      - lambda: |-
+          const float max_jump_m   = ${max_jump_m}f;
+          const uint32_t resync_ms = ${resync_minutes}UL * 60UL * 1000UL;
+          uint32_t now = millis();
+          if (isnan(id(gate_last))) {
+            id(gate_last)    = x;
+            id(gate_seen_ms) = now;
+            return x;
+          }
+          if (x <= id(gate_last) || (x - id(gate_last)) <= max_jump_m) {
+            id(gate_last)    = x;                 // fill, or real slow drain
+            id(gate_seen_ms) = now;
+          } else if ((uint32_t)(now - id(gate_seen_ms)) >= resync_ms) {
+            id(gate_last)    = x;                 // held too long; accept + flag
+            id(gate_seen_ms) = now;
+          }
+          return id(gate_last);
+
+  # NEW — UNGATED fast path. Same low-quantile rejection of multipath, but
+  # no jump gate, so it can never be held stale. Exists ONLY to back the
+  # low-water alarm: a real fast drain must not be masked by a 6 h hold.
+  # Noisier than 'tank_distance' on purpose — the alarm's delayed_on is
+  # what suppresses the noise, not a filter.
+  - platform: template
+    name: "Tank Distance Fast"
+    id: tank_distance_fast
+    unit_of_measurement: "m"
+    device_class: distance
+    accuracy_decimals: 3
+    state_class: measurement
+    entity_category: diagnostic
+    filters:
+      - quantile:
+          window_size: 60
+          send_every: 20
+          send_first_at: 20
+          quantile: ${filter_quantile}
+
+  # NEW — how long the gate has been holding without accepting a value.
+  # The honest trust signal: a large number means the reported level is
+  # being actively suppressed and may be stale.
+  - platform: template
+    name: "Tank Echo Age"
+    unit_of_measurement: "min"
+    icon: "mdi:clock-alert-outline"
+    accuracy_decimals: 0
+    state_class: measurement
+    entity_category: diagnostic
+    update_interval: 30s
+    lambda: |-
+      if (isnan(id(gate_last))) return NAN;
+      return (float)((uint32_t)(millis() - id(gate_seen_ms))) / 60000.0f;
+
   # Tank fill percentage. Depth = tank_height_m - measured distance.
   - platform: template
     name: "Water Tank Level"
@@ -197,27 +318,58 @@ sensor:
 
 binary_sensor:
   # Water dangerously close to the sensor: tank overfull / OVERFLOWING,
-  # or the sensor has dropped onto something. delayed_on ignores brief
-  # spikes — it trips only if the condition holds for 30 s.
+  # or the sensor has dropped onto something.
+  #
+  # *** READS RAW, NOT 'tank_distance'. *** A low quantile is inherently
+  # immune to short excursions, so pointed at the filtered sensor this
+  # could never fire again. delayed_on raised 30s -> 60s because fill
+  # splash reads sub-0.15 m in bursts (504 samples over 5 days, all inside
+  # fill hours); 60 s of CONTINUOUS sub-threshold is a real overflow.
   - platform: template
     name: "Water Tank Overflow Risk"
     device_class: problem
     lambda: |-
-      if (isnan(id(tank_distance).state)) return {};
-      return id(tank_distance).state < ${overflow_distance_m};
+      if (isnan(id(tank_distance_raw).state)) return {};
+      return id(tank_distance_raw).state < ${overflow_distance_m};
     filters:
-      - delayed_on: 30s
+      - delayed_on: 60s
 
   # Sensor reports no target (distance beyond the tank): knocked askew,
   # fallen off the tank, or water dropped below the sensing range.
+  #
+  # *** ALSO READS RAW. *** Same reason: the quantile filter discards the
+  # 6.5 m no-target code entirely, so this check was dead against the
+  # filtered sensor. Only 4 samples hit 6.5 m in 5 days, and delayed_on
+  # requires 30 s continuous, so raw is safe here.
   - platform: template
     name: "Water Tank Sensor Fault"
     device_class: problem
     lambda: |-
-      if (isnan(id(tank_distance).state)) return {};
-      return id(tank_distance).state > ${no_target_distance_m};
+      if (isnan(id(tank_distance_raw).state)) return {};
+      return id(tank_distance_raw).state > ${no_target_distance_m};
     filters:
       - delayed_on: 30s
+
+  # NEW — low water, off the UNGATED path so a genuine fast drain cannot be
+  # hidden by the jump gate's hold. 15 min of continuous low reading.
+  - platform: template
+    name: "Water Tank Low"
+    device_class: problem
+    lambda: |-
+      if (isnan(id(tank_distance_fast).state)) return {};
+      return id(tank_distance_fast).state > ${low_water_distance_m};
+    filters:
+      - delayed_on: 15min
+
+  # NEW — the reported level is being suppressed by the gate and may be
+  # stale. Fires at half the resync interval, so it warns BEFORE the gate
+  # capitulates rather than after.
+  - platform: template
+    name: "Tank Level Unreliable"
+    device_class: problem
+    lambda: |-
+      if (isnan(id(gate_last))) return {};
+      return (uint32_t)(millis() - id(gate_seen_ms)) > (${resync_minutes}UL * 30UL * 1000UL);
 
 # M5 Atom Lite built-in RGB NeoPixel (GPIO27)
 light:
