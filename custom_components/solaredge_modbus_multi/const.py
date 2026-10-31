@@ -13,13 +13,13 @@ SETUP_TYPE = "setup_type"
 SETUP_SCAN_FAST = "scan_fast"  # Scan IDs 1-32
 SETUP_SCAN_FULL = "scan_full"  # Scan IDs 1-247
 SETUP_MANUAL = "manual_list"
+BYPASS_DEVICE_CHECK = "bypass_device_check"
 
 # raise a startup exception if pymodbus version is less than this
 PYMODBUS_REQUIRED_VERSION = "3.8.3"
 
 # units missing in homeassistant core
 ENERGY_VOLT_AMPERE_HOUR: Final = "VAh"
-ENERGY_VOLT_AMPERE_REACTIVE_HOUR: Final = "varh"
 
 # from voluptuous/validators.py
 DOMAIN_REGEX = re.compile(

@@ -14,13 +14,24 @@
           "manual_list": "Skriv inn en liste over vekselretter-enhets-IDer manuelt"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Oppdaget SolarEdge-vekselretter",
+        "description": "En SolarEdge Modbus/TCP-gateway ble funnet på {host}:{port}. Sette den opp nå?",
+        "data": {
+          "name": "Sensorprefiks"
+        }
+      },
       "manual": {
         "title": "Manuell Modbus-konfigurasjon",
         "data": {
           "name": "Sensorvoorvoegsel",
           "host": "IP-adres van omvormer",
           "port": "Modbus/TCP-poort",
-          "device_list": "Inverter-enhetsliste"
+          "device_list": "Inverter-enhetsliste",
+          "bypass_device_check": "Hopp over validering av enhets-ID"
+        },
+        "data_description": {
+          "bypass_device_check": "Legg til enhets-ID-listen uten å koble til for å sjekke at hver ID svarer som en SolarEdge-vekselretter. Bruk dette bare hvis kontrollen mislykkes for en enhet du vet er riktig, for eksempel en som er frakoblet under oppsettet."
         }
       },
       "scan_ask_host": {
@@ -33,6 +44,10 @@
       },
       "scan_complete": {
         "title": "Skanning fullført"
+      },
+      "features_info": {
+        "title": "Batterier og kontroller er ikke aktivert ennå",
+        "description": "Som standard er kun offisielt dokumenterte SolarEdge-funksjoner aktivert: vekselrettere, Synergy-vekselrettere og målere.\n\nBatteriovervåking og alle lese-/skrivekontrollfunksjoner (batterikontroll, stedsgrensekontroll) er basert på dokumentasjon som SolarEdge ikke publiserer. Disse er deaktivert som standard og må aktiveres separat fra integrasjonens konfigurasjonsalternativer etter at denne huben er lagt til.\n\nIkke alle vekselrettere støtter dette over Modbus. Du må kanskje kontakte SolarEdge-support for å få tilgang til batteri- og kontrollfunksjoner aktivert på anlegget ditt."
       },
       "reconfigure": {
         "title": "SolarEdge Modbus-konfigurasjon",
@@ -126,6 +141,10 @@
           "already_configured": "Vert og port er allerede konfigurert i en annen hub."
         }
       }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Ugyldig omformer-enhets-ID",
+      "description": "Omformer-enhets-ID {device_id} på {host} svarer ikke eller er ikke en gyldig SolarEdge-omformer. Den er hoppet over. Hvis enheten er byttet ut eller ID-en er endret, oppdater listen over omformer-enhets-ID-er i hub-konfigurasjonen. Kontroller ellers enheten og Modbus/TCP-tilkoblingen."
     },
     "detect_timeout_gpc": {
       "title": "Global dynamisk kraftkontroll timeout",

@@ -14,13 +14,24 @@
           "manual_list": "Inserisci manualmente un elenco di ID dispositivo inverter"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Inverter SolarEdge rilevato",
+        "description": "È stato trovato un gateway SolarEdge Modbus/TCP a {host}:{port}. Configurarlo ora?",
+        "data": {
+          "name": "Prefisso sensore"
+        }
+      },
       "manual": {
         "title": "Configurazione Modbus manuale",
         "data": {
           "name": "Prefisso sensore",
           "host": "Indirizzo IP dell'inverter",
           "port": "Porta Modbus/TCP",
-          "device_list": "Elenco ID dispositivi inverter"
+          "device_list": "Elenco ID dispositivi inverter",
+          "bypass_device_check": "Salta la convalida dell'ID dispositivo"
+        },
+        "data_description": {
+          "bypass_device_check": "Aggiungi l'elenco degli ID dispositivo senza verificare che ciascun ID risponda come inverter SolarEdge. Usa questa opzione solo se il controllo fallisce per un dispositivo che sai essere corretto, ad esempio uno offline durante la configurazione."
         }
       },
       "scan_ask_host": {
@@ -33,6 +44,10 @@
       },
       "scan_complete": {
         "title": "Scansione completata"
+      },
+      "features_info": {
+        "title": "Batterie e controlli non sono ancora abilitati",
+        "description": "Per impostazione predefinita, sono abilitate solo le funzionalità ufficialmente documentate da SolarEdge: inverter, inverter Synergy e contatori.\n\nIl monitoraggio della batteria e tutte le funzionalità di controllo in lettura/scrittura (controllo della batteria, controllo del limite del sito) si basano su documentazione non pubblicata da SolarEdge. Queste funzionalità sono disabilitate per impostazione predefinita e devono essere attivate separatamente dalle opzioni di configurazione dell'integrazione dopo l'aggiunta di questo hub.\n\nNon tutti gli inverter supportano queste funzionalità tramite Modbus. Potrebbe essere necessario contattare l'assistenza SolarEdge per far abilitare l'accesso a batteria e controlli sul proprio impianto."
       },
       "reconfigure": {
         "title": "Configurazione Modbus SolarEdge",
@@ -126,6 +141,10 @@
           "already_configured": "L'host e la porta sono già configurati in un altro hub."
         }
       }
+    },
+    "setup_inverter_id_failed": {
+      "title": "ID dispositivo inverter non valido",
+      "description": "L'ID dispositivo inverter {device_id} su {host} non risponde o non è un inverter SolarEdge valido. È stato ignorato. Se il dispositivo è stato sostituito o il suo ID è cambiato, aggiorna l'elenco degli ID dispositivo inverter nella configurazione dell'hub. Altrimenti controlla il dispositivo e la connessione Modbus/TCP."
     },
     "detect_timeout_gpc": {
       "title": "Timeout di controllo del potere dinamico globale",

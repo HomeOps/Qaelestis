@@ -9,13 +9,24 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_NAME,
+    CONF_PORT,
+    CONF_SCAN_INTERVAL,
+)
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .const import (
+    BYPASS_DEVICE_CHECK,
     DEFAULT_NAME,
     DOMAIN,
     SETUP_MANUAL,
@@ -75,6 +86,8 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._scan_task = None
         self._scan_user_input = None
         self._scan_task_result = None
+        self._pending_entry = None
+        self._discovered = None
 
     @staticmethod
     @callback
@@ -131,6 +144,47 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_menu(
             step_id="user",
             menu_options=[SETUP_SCAN_FAST, SETUP_SCAN_FULL, SETUP_MANUAL],
+        )
+
+    async def async_step_zeroconf(
+        self, discovery_info: ZeroconfServiceInfo
+    ) -> ConfigFlowResult:
+        """Handle a SolarEdge Modbus/TCP gateway discovered via mDNS."""
+        host = discovery_info.host.lower()
+        port = discovery_info.port
+
+        await self.async_set_unique_id(f"{host}:{port}")
+        self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
+
+        self._discovered = {CONF_HOST: host, CONF_PORT: port}
+        self.context["title_placeholders"] = {"host": host}
+
+        return await self.async_step_zeroconf_confirm()
+
+    async def async_step_zeroconf_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Confirm setup of a discovered SolarEdge Modbus/TCP gateway."""
+        if user_input is not None:
+            self.init_info = {SETUP_TYPE: SETUP_SCAN_FAST}
+
+            return await self.async_step_scan_ask_host(
+                {
+                    CONF_NAME: user_input[CONF_NAME],
+                    CONF_HOST: self._discovered[CONF_HOST],
+                    CONF_PORT: self._discovered[CONF_PORT],
+                }
+            )
+
+        return self.async_show_form(
+            step_id="zeroconf_confirm",
+            data_schema=vol.Schema(
+                {vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string}
+            ),
+            description_placeholders={
+                CONF_HOST: self._discovered[CONF_HOST],
+                CONF_PORT: str(self._discovered[CONF_PORT]),
+            },
         )
 
     async def async_step_scan_fast(
@@ -240,10 +294,12 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if self._scan_user_input is None:
                 raise AbortFlow("No scan data available")
 
-            return self.async_create_entry(
-                title=self._scan_user_input[CONF_NAME],
-                data=self._scan_user_input,
-            )
+            self._pending_entry = {
+                "title": self._scan_user_input[CONF_NAME],
+                "data": self._scan_user_input,
+            }
+
+            return await self.async_step_features_info()
 
         except Exception as e:
             raise AbortFlow(f"Scan failed: {e}")
@@ -264,6 +320,33 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_HOST] = "invalid_host"
             elif not 1 <= user_input[CONF_PORT] <= 65535:
                 errors[CONF_PORT] = "invalid_tcp_port"
+            elif user_input[BYPASS_DEVICE_CHECK]:
+                try:
+                    device_list = device_list_from_string(
+                        user_input[ConfName.DEVICE_LIST]
+                    )
+                except HomeAssistantError as e:
+                    errors[ConfName.DEVICE_LIST] = f"{e}"
+                else:
+                    if not 1 <= len(device_list) <= 32:
+                        errors[ConfName.DEVICE_LIST] = "invalid_inverter_count"
+                    else:
+                        user_input[ConfName.DEVICE_LIST] = device_list
+
+                        new_unique_id = (
+                            f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                        )
+                        await self.async_set_unique_id(new_unique_id)
+
+                        self._abort_if_unique_id_configured()
+
+                        del user_input[BYPASS_DEVICE_CHECK]
+                        self._pending_entry = {
+                            "title": user_input[CONF_NAME],
+                            "data": user_input,
+                        }
+
+                        return await self.async_step_features_info()
             else:
                 scanner = SolarEdgeDeviceScanner(
                     host=user_input[CONF_HOST],
@@ -316,9 +399,13 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                         self._abort_if_unique_id_configured()
 
-                        return self.async_create_entry(
-                            title=user_input[CONF_NAME], data=user_input
-                        )
+                        del user_input[BYPASS_DEVICE_CHECK]
+                        self._pending_entry = {
+                            "title": user_input[CONF_NAME],
+                            "data": user_input,
+                        }
+
+                        return await self.async_step_features_info()
 
                 finally:
                     await scanner.disconnect()
@@ -330,6 +417,7 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_HOST: "",
                 CONF_PORT: ConfDefaultInt.PORT,
                 ConfName.DEVICE_LIST: ConfDefaultStr.DEVICE_LIST,
+                BYPASS_DEVICE_CHECK: False,
             }
 
         return self.async_show_form(
@@ -345,9 +433,28 @@ class SolaredgeModbusMultiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         f"{ConfName.DEVICE_LIST}",
                         default=user_input[ConfName.DEVICE_LIST],
                     ): cv.string,
+                    vol.Optional(
+                        BYPASS_DEVICE_CHECK,
+                        default=user_input.get(BYPASS_DEVICE_CHECK, False),
+                    ): cv.boolean,
                 },
             ),
             errors=errors,
+        )
+
+    async def async_step_features_info(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Inform the user that batteries and controls are opt-in after setup."""
+        if user_input is not None:
+            entry = self._pending_entry
+            self._pending_entry = None
+
+            return self.async_create_entry(title=entry["title"], data=entry["data"])
+
+        return self.async_show_form(
+            step_id="features_info",
+            data_schema=vol.Schema({}),
         )
 
     async def async_step_reconfigure(
@@ -456,19 +563,22 @@ class SolaredgeModbusMultiOptionsFlowHandler(OptionsFlow):
                     CONF_SCAN_INTERVAL, ConfDefaultInt.SCAN_INTERVAL
                 ),
                 ConfName.KEEP_MODBUS_OPEN: self.config_entry.options.get(
-                    ConfName.KEEP_MODBUS_OPEN, bool(ConfDefaultFlag.KEEP_MODBUS_OPEN)
+                    ConfName.KEEP_MODBUS_OPEN,
+                    bool(ConfDefaultFlag.KEEP_MODBUS_OPEN),
                 ),
                 ConfName.DETECT_METERS: self.config_entry.options.get(
                     ConfName.DETECT_METERS, bool(ConfDefaultFlag.DETECT_METERS)
                 ),
                 ConfName.DETECT_BATTERIES: self.config_entry.options.get(
-                    ConfName.DETECT_BATTERIES, bool(ConfDefaultFlag.DETECT_BATTERIES)
+                    ConfName.DETECT_BATTERIES,
+                    bool(ConfDefaultFlag.DETECT_BATTERIES),
                 ),
                 ConfName.DETECT_EXTRAS: self.config_entry.options.get(
                     ConfName.DETECT_EXTRAS, bool(ConfDefaultFlag.DETECT_EXTRAS)
                 ),
                 ConfName.ADV_PWR_CONTROL: self.config_entry.options.get(
-                    ConfName.ADV_PWR_CONTROL, bool(ConfDefaultFlag.ADV_PWR_CONTROL)
+                    ConfName.ADV_PWR_CONTROL,
+                    bool(ConfDefaultFlag.ADV_PWR_CONTROL),
                 ),
                 ConfName.SLEEP_AFTER_WRITE: self.config_entry.options.get(
                     ConfName.SLEEP_AFTER_WRITE, ConfDefaultInt.SLEEP_AFTER_WRITE

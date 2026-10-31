@@ -8,23 +8,24 @@ are an external pip dependency we don't own, so behavior that would
 naturally live inside StateCache.apply_rep lives here instead, gating
 whether apply_rep is called at all.
 """
+
 from __future__ import annotations
 
 import logging
 import threading
 import time
+from collections.abc import Callable
 
 import cbor2
-
-from smartthings_local.ocf.state_cache import StateCache
 from smartthings_local.ocf.observe_refresh import ObserveRefreshTask
+from smartthings_local.ocf.state_cache import StateCache
 
 _LOGGER = logging.getLogger(__name__)
 
 REFRESH_INTERVAL_S = 6 * 3600.0
 
-MODE_OBSERVE = 'observe'
-MODE_POLL = 'poll'
+MODE_OBSERVE = "observe"
+MODE_POLL = "poll"
 
 DEFAULT_SETTLE_S = 4.0
 GRACE_PERIOD_S = 15.0
@@ -55,6 +56,26 @@ SUCCESS_FRACTION = 0.8
 PUSH_HEALTH_WINDOW_S = 60.0
 
 
+def _is_alarms_href(href: str) -> bool:
+    """True for /alarms/vs/<index> in any subdevice-translated shape --
+    the canonical MAIN form (/alarms/vs/0), an indexed subdevice's
+    renumbered instance (/alarms/vs/<key>), or a prefixed subdevice's
+    UUID-qualified form (/<uuid>/alarms/vs/0). `Subdevice.to_actual`
+    (registry/subdevices.py) only ever rewrites the trailing index
+    segment or prepends a prefix -- it never touches the 'alarms/vs'
+    stem -- so matching that fixed segment plus a wildcard tail catches
+    every shape without this module needing to be subdevice-aware.
+
+    See `ObserveManager.apply`'s use of this for why the href matters:
+    unlike most resources, /alarms/vs/0's `x.com.samsung.da.items` array
+    is a complete snapshot of every currently-active alarm, not a
+    possibly-partial field update -- so it must never be merged onto a
+    stale prior rep (issue #348).
+    """
+    head, _, _ = href.rpartition("/")
+    return head.endswith("/alarms/vs")
+
+
 class ObserveManager:
     """Per-device observe-mode state: mode, write-settle guard, and (later)
     subscription/staleness tracking. Pure sync logic — safe to call from
@@ -73,10 +94,31 @@ class ObserveManager:
         self.subscribed_hrefs: set[str] = set()
         self._notified: set[str] = set()
         self._last_notify_ts: float | None = None
+        # Wakes try_enter_observe_mode's grace wait early once enough hrefs
+        # have notified. Guards `_notified` mutations, the `wait_for`, and
+        # fallback_hrefs (enter_observe_mode assignment, on_notification
+        # discard).
+        self._notify_cond = threading.Condition()
+        # Idle while polling, except after downgrade_to_poll (every href
+        # that was subscribed). While in observe mode this is the set of
+        # subscribed hrefs that have not yet notified (issue #92) -- they
+        # stay on the hot/warm sub-poll cadence. on_notification discards
+        # an href once it pushes, so a late first notify self-corrects.
         self.fallback_hrefs: set[str] = set()
+        self._on_applied: Callable[[str, dict, str], None] | None = None
         self._refresh_task: ObserveRefreshTask | None = None
         self._refresh_stop: threading.Event | None = None
         self._refresh_thread: threading.Thread | None = None
+
+    def set_on_applied(self, callback: Callable[[str, dict, str], None]) -> None:
+        """Hook run after every accepted rep, on the applying thread.
+
+        Unlike StateCache.set_on_change it carries the href and rep, and
+        fires even when the rep is unchanged -- which learned.py needs, a
+        device sitting in an unadvertised mode re-sending the same rep
+        every poll.
+        """
+        self._on_applied = callback
 
     def mark_write_pending(self, href: str, settle_s: float = DEFAULT_SETTLE_S) -> None:
         with self._settle_lock:
@@ -107,6 +149,20 @@ class ObserveManager:
         comes through, even though nothing about the device's actual
         supported options changed.
 
+        `_is_alarms_href` is the one exception to that merge (issue #348):
+        /alarms/vs/0's `items` array is always sent as a complete
+        snapshot of every currently-active alarm, never a partial delta
+        -- confirmed by a live `read_resource` GET returning `{}` (no
+        `items` key at all) the moment a washer's board actually clears
+        an alarm, which entity.py already documents as this resource's
+        normal no-alarm shape. Merging that `{}` onto the prior rep the
+        same way as everywhere else silently kept the stale `items`
+        entry forever: an absent key merges as "unchanged" everywhere
+        else, but on this href absent specifically means "cleared".
+        Every family that exposes an alarm sensor shares this href
+        (common.ALARMS, range_hood's own copy), so this is a full
+        replace for all of them, not a washer-specific carve-out.
+
         `apply()` is the sole path StateCache mutations flow through in
         this component (poll, sweep, and OBSERVE notify all funnel here),
         so `_cache_lock` serializes the read-then-write across those
@@ -130,12 +186,19 @@ class ObserveManager:
         happened to expire, i.e. the exact symptom this guard exists to
         prevent, just relocated to whichever write loses the race.
         """
-        if source != 'optimistic' and self._is_settling(href):
+        if source != "optimistic" and self._is_settling(href):
             self.log.debug("dropping %s update for %s (settling)", source, href)
             return False
         with self._cache_lock:
-            merged = {**(self.cache.get(href) or {}), **rep}
-            return self.cache.apply_rep(href, merged, source=source)
+            merged = dict(rep) if _is_alarms_href(href) else {**(self.cache.get(href) or {}), **rep}
+            changed = self.cache.apply_rep(href, merged, source=source)
+        # Outside the cache lock -- the hook takes locks of its own and
+        # never reads the cache back. `source` is passed along rather than
+        # filtered here: which sources are worth acting on is the hook's
+        # policy, not this manager's.
+        if self._on_applied is not None:
+            self._on_applied(href, merged, source)
+        return changed
 
     def on_notification(self, href: str, payload: bytes) -> None:
         """Wired as DtlsCoapSession.on_notification. Runs on the DTLS
@@ -147,10 +210,16 @@ class ObserveManager:
             return
         if not isinstance(rep, dict):
             return
-        self._notified.add(href)
-        self._last_notify_ts = time.monotonic()
+        with self._notify_cond:
+            self._notified.add(href)
+            # Snapshot in enter_observe_mode is at the 80% quorum, not the
+            # full grace period -- a late first push (blockwise refetch)
+            # must drop the href so we don't keep GET-polling a live one.
+            self.fallback_hrefs.discard(href)
+            self._last_notify_ts = time.monotonic()
+            self._notify_cond.notify_all()
         self.log.debug("observe notify: %s", href)
-        self.apply(href, rep, source='observe')
+        self.apply(href, rep, source="observe")
 
     def recently_notified(self, window_s: float = PUSH_HEALTH_WINDOW_S) -> bool:
         """True if any OBSERVE notify has arrived within `window_s`.
@@ -163,45 +232,95 @@ class ObserveManager:
         channel has been perfectly healthy").
         """
         return (
-            self._last_notify_ts is not None
-            and time.monotonic() - self._last_notify_ts < window_s
+            self._last_notify_ts is not None and time.monotonic() - self._last_notify_ts < window_s
         )
 
-    def try_enter_observe_mode(
-        self, session, hrefs: list[str],
-        grace_period_s: float = GRACE_PERIOD_S,
-        success_fraction: float = SUCCESS_FRACTION,
-    ) -> bool:
-        """Blocking — subscribes to every href then sleeps for the whole
-        grace period. Caller must run this in an executor, never on the
-        event loop."""
-        self._notified.clear()
+    def subscribe_hrefs(self, session, hrefs: list[str]) -> set[str]:
+        """Register OBSERVE on every href; returns the ones that took.
+        Blocking — run in an executor.
+
+        Split from the grace wait below (issue #294) so the coordinator can
+        hold its session lock for just these sends -- each is a fire-and-
+        forget UDP datagram (DtlsCoapSession.subscribe doesn't wait for the
+        device's ack), unlike the wait, which can block for the whole grace
+        period and must not hold a lock a command write is also waiting on.
+        """
+        with self._notify_cond:
+            self._notified.clear()
         subscribed: set[str] = set()
         for href in hrefs:
-            segs = [s for s in href.strip('/').split('/') if s]
+            segs = [s for s in href.strip("/").split("/") if s]
             try:
                 session.subscribe(segs)
                 subscribed.add(href)
             except Exception as e:
                 self.log.warning("subscribe %s failed: %s", href, e)
+        return subscribed
+
+    def await_observe_notifies(
+        self,
+        subscribed: set[str],
+        grace_period_s: float = GRACE_PERIOD_S,
+        success_fraction: float = SUCCESS_FRACTION,
+    ) -> bool:
+        """Blocking — waits up to `grace_period_s`, returning early once
+        `success_fraction` of `subscribed` have notified. Touches no
+        session; safe to run without holding a session lock."""
         if not subscribed:
-            self._stop_refresh_task()
-            self._set_mode(MODE_POLL)
-            self.subscribed_hrefs = set()
             return False
 
-        time.sleep(grace_period_s)
+        def _fraction_reached() -> bool:
+            return len(set(self._notified) & subscribed) / len(subscribed) >= success_fraction
 
-        fraction = len(set(self._notified) & subscribed) / len(subscribed)
-        if fraction >= success_fraction:
-            self.subscribed_hrefs = subscribed
-            self._set_mode(MODE_OBSERVE)
-            self.start_refresh_task(session)
-            return True
+        with self._notify_cond:
+            return self._notify_cond.wait_for(_fraction_reached, timeout=grace_period_s)
 
+    def enter_observe_mode(self, session, subscribed: set[str]) -> None:
+        """Commit a successful attempt. Caller must have re-confirmed
+        `session` is still the live one under its session lock (issue
+        #294) -- committing against a session a reconnect already replaced
+        would claim observe mode with nothing left to notice it's dead."""
+        self.subscribed_hrefs = set(subscribed)
+        # Issue #92: subscribed-but-silent hrefs are counted as covered by
+        # push if we drop this, but they never emit a notify. Keep them on
+        # the poll cadence via fallback_hrefs (otherwise idle in observe).
+        # Same lock as on_notification's discard so a notify in this window
+        # cannot land on a set object that is about to be replaced.
+        with self._notify_cond:
+            self.fallback_hrefs = set(subscribed) - self._notified
+        self._set_mode(MODE_OBSERVE)
+        self.start_refresh_task(session)
+
+    def abandon_observe_attempt(self) -> None:
+        """Drop a failed or stale attempt: no subscriptions worth keeping."""
         self._stop_refresh_task()
         self.subscribed_hrefs = set()
         self._set_mode(MODE_POLL)
+
+    def try_enter_observe_mode(
+        self,
+        session,
+        hrefs: list[str],
+        grace_period_s: float = GRACE_PERIOD_S,
+        success_fraction: float = SUCCESS_FRACTION,
+    ) -> bool:
+        """Blocking — subscribes to every href then waits up to
+        `grace_period_s`, returning early once `success_fraction` of hrefs
+        have notified. Caller must run this in an executor, never on the
+        event loop.
+
+        Single-threaded convenience wrapper around the phase split above
+        (subscribe_hrefs / await_observe_notifies / enter_observe_mode /
+        abandon_observe_attempt) for callers -- direct and most existing
+        tests -- that don't need the lock-scoping those phases exist for."""
+        subscribed = self.subscribe_hrefs(session, hrefs)
+        if not subscribed:
+            self.abandon_observe_attempt()
+            return False
+        if self.await_observe_notifies(subscribed, grace_period_s, success_fraction):
+            self.enter_observe_mode(session, subscribed)
+            return True
+        self.abandon_observe_attempt()
         return False
 
     def _set_mode(self, mode: str) -> None:
@@ -256,7 +375,8 @@ class ObserveManager:
                 found = True
                 self.log.debug(
                     "observe missed a change on %s (sweep disagrees with cache): %s",
-                    href, diff,
+                    href,
+                    diff,
                 )
         return found
 
@@ -268,15 +388,19 @@ class ObserveManager:
 
     def start_refresh_task(self, session) -> None:
         self._stop_refresh_task()
-        paths = [tuple(h.strip('/').split('/')) for h in self.subscribed_hrefs]
+        paths = [tuple(h.strip("/").split("/")) for h in self.subscribed_hrefs]
         self._refresh_task = ObserveRefreshTask(
-            session, paths, interval_s=REFRESH_INTERVAL_S, logger=self.log,
+            session,
+            paths,
+            interval_s=REFRESH_INTERVAL_S,
+            logger=self.log,
         )
         self._refresh_stop = threading.Event()
         self._refresh_thread = threading.Thread(
             target=self._refresh_task.run_forever,
             args=(self._refresh_stop,),
-            daemon=True, name='localthings-observe-refresh',
+            daemon=True,
+            name="localthings-observe-refresh",
         )
         self._refresh_thread.start()
 

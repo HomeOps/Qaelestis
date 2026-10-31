@@ -10,29 +10,38 @@ under — new device types will have unknown-shaped data we can't fully
 enumerate in advance, so this errs on catching the field by name rather
 than only redacting inside hrefs we already recognize.
 """
+
 from __future__ import annotations
 
 REDACTED = "**REDACTED**"
 
 _SENSITIVE_SUBSTRINGS = (
-    'mac', 'serial', 'token', 'login', 'account', 'email',
-    'userid', 'deviceid', 'uuid', 'duid', 'password', 'secret',
+    "mac",
+    "serial",
+    "token",
+    "login",
+    "account",
+    "email",
+    "userid",
+    "deviceid",
+    "uuid",
+    "duid",
+    "password",
+    "secret",
 )
 
-# Matched whole, not as substrings. OCF's /oic/d and /oic/p identify the unit
-# with bare one- and two-letter keys that the rules above cannot see, being
-# far too short to match on -- 'di' alone is a substring of 'condition',
-# 'display', 'dispenser' and plenty of other ordinary appliance fields:
+# Matched whole, not as substrings: these are bare one/two-letter keys too
+# short for the substring rules above ('n' is a substring of very nearly
+# everything). 'n' is /oic/d's free-text device name, which the owner sets
+# from the SmartThings app and can carry a person's name -- the device-type
+# signal we actually want from that resource is `rt`, which is not redacted.
 #
-#   'di' -- device UUID, 'pi' -- platform UUID. As identifying as the serial
-#           number above.
-#   'n'  -- /oic/d's device name. Free text the owner can set from the
-#           SmartThings app, so it may well carry a person's name. Nothing
-#           in the /device/0 dump has ever exposed it; it only became
-#           reachable when diagnostics started reporting /oic/d, and the
-#           device-type signal we actually want from that resource is `rt`,
-#           which is not redacted.
-_SENSITIVE_EXACT = frozenset({'di', 'pi', 'n'})
+# /oic/d's `di` and /oic/p's `pi` are deliberately not redacted: they're
+# randomly-assigned per-unit UUIDs rather than account data, and they are
+# what registry keys are minted from (issue #381), so blanking them hides
+# the identity every entity in a report is named after -- which is exactly
+# what made #381's first diagnostics download unable to answer it.
+_SENSITIVE_EXACT = frozenset({"n"})
 
 
 def _is_sensitive_key(key: str) -> bool:

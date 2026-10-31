@@ -14,13 +14,24 @@
           "manual_list": "Manually enter a list of inverter Device IDs"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Discovered SolarEdge Inverter",
+        "description": "A SolarEdge Modbus/TCP gateway was found at {host}:{port}. Set it up now?",
+        "data": {
+          "name": "Sensor Prefix"
+        }
+      },
       "manual": {
         "title": "Manual Modbus Configuration",
         "data": {
           "name": "Sensor Prefix",
           "host": "Inverter IP Address",
           "port": "Modbus/TCP Port",
-          "device_list": "Inverter Device ID List"
+          "device_list": "Inverter Device ID List",
+          "bypass_device_check": "Skip Device ID validation"
+        },
+        "data_description": {
+          "bypass_device_check": "Add the Device ID list without connecting to check that each ID responds as a SolarEdge inverter. Use this only if the check fails for a device you know is correct, such as one that is offline during setup."
         }
       },
       "scan_ask_host": {
@@ -33,6 +44,10 @@
       },
       "scan_complete": {
         "title": "Scan Complete"
+      },
+      "features_info": {
+        "title": "Batteries and Controls Are Not Enabled Yet",
+        "description": "By default, only officially documented SolarEdge features are enabled: inverters, synergy inverters, and meters.\n\nBattery monitoring and all read/write control features (battery control, site limit control) are based on documentation that SolarEdge does not publish. These are disabled by default and must be turned on separately from the integration's Configure options after this hub is added.\n\nNot all inverters support these over Modbus. You may need to contact SolarEdge support to have battery and control access exposed on your installation."
       },
       "reconfigure": {
         "title": "SolarEdge Modbus Configuration",
@@ -125,6 +140,10 @@
           "already_configured": "Host and port is already configured in another hub."
         }
       }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Invalid Inverter Device ID",
+      "description": "Inverter Device ID {device_id} at {host} is not responding or is not a valid SolarEdge inverter. It has been skipped. If the device was replaced or its ID changed, update the Inverter Device ID List in the hub configuration. Otherwise check the device and Modbus/TCP connection."
     },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout",

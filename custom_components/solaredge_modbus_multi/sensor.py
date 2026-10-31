@@ -13,12 +13,15 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
     UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfReactiveEnergy,
     UnitOfReactivePower,
     UnitOfTemperature,
 )
@@ -26,6 +29,7 @@ from homeassistant.const import __version__ as HA_VERSION
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -35,7 +39,6 @@ from .const import (
     DEVICE_STATUS_TEXT,
     DOMAIN,
     ENERGY_VOLT_AMPERE_HOUR,
-    ENERGY_VOLT_AMPERE_REACTIVE_HOUR,
     INVERTED_POWER_VERSION,
     METER_EVENTS,
     MMPPT_EVENTS,
@@ -91,6 +94,7 @@ async def async_setup_entry(
         entities.append(DCVoltage(inverter, config_entry, coordinator))
         entities.append(DCPower(inverter, config_entry, coordinator))
         entities.append(HeatSinkTemperature(inverter, config_entry, coordinator))
+        entities.append(SolarEdgeWriteCount(inverter, config_entry, coordinator))
 
         if hub.option_detect_extras and inverter.global_power_control:
             entities.append(SolarEdgeRRCR(inverter, config_entry, coordinator))
@@ -391,7 +395,12 @@ class ACCurrentSensor(SolarEdgeSensorBase):
 
         if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
             self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [201, 202, 203, 204]:
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [
+            201,
+            202,
+            203,
+            204,
+        ]:
             self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.INT16
         else:
             raise RuntimeError(
@@ -473,7 +482,12 @@ class VoltageSensor(SolarEdgeSensorBase):
 
         if self._platform.decoded_model["C_SunSpec_DID"] in [101, 102, 103]:
             self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.UINT16
-        elif self._platform.decoded_model["C_SunSpec_DID"] in [201, 202, 203, 204]:
+        elif self._platform.decoded_model["C_SunSpec_DID"] in [
+            201,
+            202,
+            203,
+            204,
+        ]:
             self.SUNSPEC_NOT_IMPL = SunSpecNotImpl.INT16
         else:
             raise RuntimeError(
@@ -1314,6 +1328,60 @@ class SolarEdgeTemperatureMMPPT(SolarEdgeSensorBase):
         return self._platform.inverter.decoded_model[self._platform.mmppt_key]["Tmp"]
 
 
+class SolarEdgeWriteCount(RestoreEntity, SolarEdgeSensorBase):
+    """Number of Modbus write commands sent to this inverter's unit ID.
+
+    Tracks writes for possible flash wear. This counts only writes we
+    addressed to this specific unit ID. A leader inverter may propagate
+    settings to linked followers internally, but the integration can't know that,
+    so it isn't reflected in any other unit's write count. See discussion
+    https://github.com/WillCodeForCats/solaredge-modbus-multi/discussions/727
+    """
+
+    entity_category = EntityCategory.DIAGNOSTIC
+    state_class = SensorStateClass.TOTAL_INCREASING
+    icon = "mdi:file-document-edit-outline"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._platform.uid_base}_write_count"
+
+    @property
+    def name(self) -> str:
+        return "Write Count"
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self):
+        return self._platform.write_count
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state is not None and last_state.state not in (
+            STATE_UNAVAILABLE,
+            STATE_UNKNOWN,
+        ):
+            try:
+                self._platform.write_count = int(last_state.state)
+            except ValueError:
+                pass
+
+        self._platform.write_count_listeners.add(self._write_count_updated)
+
+    async def async_will_remove_from_hass(self) -> None:
+        self._platform.write_count_listeners.discard(self._write_count_updated)
+        await super().async_will_remove_from_hass()
+
+    @callback
+    def _write_count_updated(self) -> None:
+        self.async_write_ha_state()
+
+
 class SolarEdgeStatusSensor(SolarEdgeSensorBase):
     device_class = SensorDeviceClass.ENUM
     entity_category = EntityCategory.DIAGNOSTIC
@@ -1801,9 +1869,9 @@ class MeterVAhIE(SolarEdgeSensorBase):
 
 
 class MetervarhIE(SolarEdgeSensorBase):
-    device_class = SensorDeviceClass.ENERGY
+    device_class = SensorDeviceClass.REACTIVE_ENERGY
     state_class = SensorStateClass.TOTAL_INCREASING
-    native_unit_of_measurement = ENERGY_VOLT_AMPERE_REACTIVE_HOUR
+    native_unit_of_measurement = UnitOfReactiveEnergy.VOLT_AMPERE_REACTIVE_HOUR
 
     def __init__(self, platform, config_entry, coordinator, phase: str = None):
         super().__init__(platform, config_entry, coordinator)
@@ -2120,8 +2188,8 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                         ):
                             _LOGGER.warning(
                                 (
-                                    "Battery Export Energy went backwards: Current value "  # noqa: B950
-                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: B950
+                                    "Battery Export Energy went backwards: Current value "
+                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "
                                     f"is less than last value of {self._last}"
                                 )
                             )
@@ -2132,7 +2200,7 @@ class SolarEdgeBatteryEnergyExport(SolarEdgeSensorBase):
                             _LOGGER.debug(
                                 (
                                     "B_Export_Energy went backwards: "
-                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "  # noqa: B950
+                                    f"{self._platform.decoded_model['B_Export_Energy_WH']} "
                                     f"< {self._last} cycle {self._count} of "
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
@@ -2209,8 +2277,8 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                         ):
                             _LOGGER.warning(
                                 (
-                                    "Battery Import Energy went backwards: Current value "  # noqa: B950
-                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: B950
+                                    "Battery Import Energy went backwards: Current value "
+                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "
                                     f"is less than last value of {self._last}"
                                 )
                             )
@@ -2221,7 +2289,7 @@ class SolarEdgeBatteryEnergyImport(SolarEdgeSensorBase):
                             _LOGGER.debug(
                                 (
                                     "B_Import_Energy went backwards: "
-                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "  # noqa: B950
+                                    f"{self._platform.decoded_model['B_Import_Energy_WH']} "
                                     f"< {self._last} cycle {self._count} of "
                                     f"{self._platform.battery_energy_reset_cycles}"
                                 )
@@ -2520,7 +2588,12 @@ class SolarEdgeCommitControlSettings(SolarEdgeAdvancedPowerControlBlock):
 
         if self._platform.decoded_model["CommitPwrCtlSettings"] == 0x0:
             attrs["status"] = "SUCCESS"
-        if self._platform.decoded_model["CommitPwrCtlSettings"] in [0x1, 0x2, 0x3, 0x4]:
+        if self._platform.decoded_model["CommitPwrCtlSettings"] in [
+            0x1,
+            0x2,
+            0x3,
+            0x4,
+        ]:
             attrs["status"] = "INTERNAL_ERROR"
         if self._platform.decoded_model["CommitPwrCtlSettings"] == 0xFFFF:
             attrs["status"] = "UNKNOWN_ERROR"
@@ -2594,4 +2667,4 @@ class SolarEdgeLastUpdate(SolarEdgeSensorBase):
 
     @property
     def native_value(self) -> datetime.datetime | None:
-        return self._platform.last_update
+        return self.coordinator.last_update_success_time

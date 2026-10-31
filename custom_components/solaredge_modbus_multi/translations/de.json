@@ -14,13 +14,24 @@
           "manual_list": "Manuelle Eingabe einer Liste von Wechselrichter-Geräte-IDs"
         }
       },
+      "zeroconf_confirm": {
+        "title": "Entdeckter SolarEdge-Wechselrichter",
+        "description": "Ein SolarEdge Modbus/TCP-Gateway wurde unter {host}:{port} gefunden. Jetzt einrichten?",
+        "data": {
+          "name": "Sensorpräfix"
+        }
+      },
       "manual": {
         "title": "Manuelle Modbus-Konfiguration",
         "data": {
           "name": "Sensorpräfix",
           "host": "Wechselrichter-IP-Adresse",
           "port": "Modbus/TCP-Port",
-          "device_list": "Liste der Wechselrichter-Geräte-IDs"
+          "device_list": "Liste der Wechselrichter-Geräte-IDs",
+          "bypass_device_check": "Geräte-ID-Prüfung überspringen"
+        },
+        "data_description": {
+          "bypass_device_check": "Fügen Sie die Geräte-ID-Liste hinzu, ohne zu prüfen, ob jede ID als SolarEdge-Wechselrichter antwortet. Verwenden Sie dies nur, wenn die Prüfung für ein Gerät fehlschlägt, von dem Sie wissen, dass es korrekt ist, z. B. eines, das während der Einrichtung offline ist."
         }
       },
       "scan_ask_host": {
@@ -33,6 +44,10 @@
       },
       "scan_complete": {
         "title": "Scan abgeschlossen"
+      },
+      "features_info": {
+        "title": "Batterien und Steuerungen sind noch nicht aktiviert",
+        "description": "Standardmäßig sind nur offiziell von SolarEdge dokumentierte Funktionen aktiviert: Wechselrichter, Synergy-Wechselrichter und Zähler.\n\nDie Batterieüberwachung und alle Lese-/Schreibsteuerungsfunktionen (Batteriesteuerung, Standortlimitsteuerung) basieren auf Dokumentation, die SolarEdge nicht veröffentlicht. Diese sind standardmäßig deaktiviert und müssen nach dem Hinzufügen dieses Hubs separat über die Konfigurationsoptionen der Integration aktiviert werden.\n\nNicht alle Wechselrichter unterstützen diese Funktionen über Modbus. Sie müssen sich möglicherweise an den SolarEdge-Support wenden, um den Zugriff auf Batterie- und Steuerungsfunktionen für Ihre Anlage freischalten zu lassen."
       },
       "reconfigure": {
         "title": "SolarEdge Modbus-Konfiguration",
@@ -126,6 +141,10 @@
           "already_configured": "Host und Port sind bereits in einem anderen Hub konfiguriert."
         }
       }
+    },
+    "setup_inverter_id_failed": {
+      "title": "Ungültige Wechselrichter-Geräte-ID",
+      "description": "Wechselrichter-Geräte-ID {device_id} bei {host} antwortet nicht oder ist kein gültiger SolarEdge-Wechselrichter. Sie wurde übersprungen. Wenn das Gerät ausgetauscht oder seine ID geändert wurde, aktualisieren Sie die Liste der Wechselrichter-Geräte-IDs in der Hub-Konfiguration. Andernfalls überprüfen Sie das Gerät und die Modbus/TCP-Verbindung."
     },
     "detect_timeout_gpc": {
       "title": "Global Dynamic Power Control Timeout",
