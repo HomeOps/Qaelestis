@@ -28,27 +28,37 @@ substitutions:
   #   alert.water_tank_low already uses, or the two will disagree. ***
   low_water_distance_m: "1.55"
 
-  # ── Filter constants — every one of these is a MEASURED value ────────
-  # Derived from 327k raw samples, 2026-07-26..31, scored against the
-  # tank's independent hydrostatic pressure sensor. See
-  # water-tank-sensor-echo-remediation.md before changing any of them.
+  # ── Filter constant — the window order statistic ────────────────────
+  # filter_quantile: 0.50 (median). Used by BOTH tank_distance and
+  # tank_distance_fast. See water-tank-sensor-echo-remediation.md §9/§11.
   #
-  # filter_quantile: 0.05. Multipath is geometrically LONGER than the
-  #   direct echo, so the truth lives in the low tail. Measured median
-  #   error vs the pressure reference: 5th pct 115 mm, median 310 mm.
-  #   NOT 0.02 — during a fill the inflow stream returns SHORT (4,671
-  #   samples below 0.18 m over 5 days, all inside fill hours, up to 34 %
-  #   of samples in the worst hour) and the 2nd percentile sits in it.
-  # max_jump_m: 0.030. Fastest real drawdown measured was 434 mm in 2 h
-  #   (~3.6 mm/min, ~0.6 mm per emission), so this still leaves ~50x
-  #   headroom. Swept p90 error: 150 mm -> 269, 50 mm -> 181, 30 mm ->
-  #   181, 20 mm -> 237 (too tight, starts blocking ordinary drift).
-  # resync_minutes: 360. THIS IS THE NOISE CONTROL, not max_jump_m.
-  #   Spike rate (a 15-min bucket >100 mm off its own neighbours):
-  #   30 min -> 9.1 %, 120 min -> 2.2 %, 360 min -> 0.8 %.
-  filter_quantile: "0.05"
-  max_jump_m: "0.030"
-  resync_minutes: "360"
+  # *** READ THIS before changing it back to 0.05. ***
+  # The 0.05 low-tail filter (chosen 2026-07-26..31) is correct ONLY while
+  # the tank is FULL. Its premise — "secondary echoes are always LONGER
+  # than the water surface, so the truth lives in the low tail" — INVERTS
+  # the moment the water drops below the fixed off-axis wall reflectors
+  # (~0.5-1.0 m; doc §9.1 / §11.1b "largest-target" behaviour). With the
+  # tank empty the true floor echo is ~2.0 m (the LONG mode) and the wall
+  # reflections become the SHORT contamination, so q=0.05 latches onto a
+  # ~2 % minority of 0.2-0.4 m false echoes and reports ~95-100 % full on a
+  # bone-empty tank — then the old jump gate held that false-full for hours.
+  #
+  # MEASURED 2026-10-31 over 467,882 raw samples, 2026-10-26..31, a week the
+  # tank was empty throughout (raw distance median 2.05 m, 95 % of samples
+  # 1.4-2.6 m, tank floor ~2.0 m):
+  #   q=0.05 + jump gate (as flashed): reported >80 % full 74 % of the time,
+  #                                    0 % correctly empty  <- the fault
+  #   q=0.50 median:                   empty 81 % of the time, 1.6 % false-full
+  # The median also fails SAFE: on a genuinely full tank (where the long
+  # reflections are the majority) it UNDER-reports and triggers a refill —
+  # it never over-reports an empty tank into a dry delivery, which is the
+  # failure that broke water delivery.
+  #
+  # The honest limit: NO fixed quantile is right in both regimes (doc §8.2,
+  # §11). The real fix is the stilling well (§11.2) or a trusted hydrostatic
+  # level. Until then the median is the safe compromise, biased toward the
+  # empty case because that is the one that fails dangerously.
+  filter_quantile: "0.50"
 
 esphome:
   name: water-tank-sensor
@@ -73,22 +83,21 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  # Static IP, matching the CR house convention (see panels/panel.yaml and
+  # midea_xye/midea_xye.yaml: same gateway/subnet, no dns1). Added
+  # 2026-10-31. mDNS (water-tank-sensor.local) does not cross the WA<->CR
+  # link, so the dedicated CR esp-builder must reach this device by a fixed
+  # IP. .81.229 is the reserved address HA's ESPHome integration already
+  # uses; gateway .81.1 confirmed from the HA host's ARP table (end0.81).
+  manual_ip:
+    static_ip: 192.168.81.229
+    gateway: 192.168.81.1
+    subnet: 255.255.255.0
   ap:
     ssid: !secret ap_ssid
     password: !secret ap_password
 
 captive_portal:
-
-# NEW — state for the jump gate on 'tank_distance'.
-globals:
-  - id: gate_last
-    type: float
-    restore_value: no
-    initial_value: 'NAN'
-  - id: gate_seen_ms
-    type: uint32_t
-    restore_value: no
-    initial_value: '0'
 
 # MB7851-B36 (XL-TankSensor-WRMT) serial build — see calestis-water-level-sensor.md.
 #
@@ -190,7 +199,7 @@ sensor:
     entity_category: diagnostic
 
   # PRIMARY filtered distance. Everything user-facing (%, litres) reads
-  # this one. Was `median: {31, 10}` — replaced, see below.
+  # this one.
   - platform: template
     name: "Tank Distance"
     id: tank_distance
@@ -199,58 +208,33 @@ sensor:
     accuracy_decimals: 3
     state_class: measurement
     filters:
-      # A MEDIAN IS THE BUG, NOT THE FIX. It sits on whichever false mode
-      # holds the majority of the window. Measured against the independent
-      # pressure reference over 243 buckets: median 310 mm error (448 mm
-      # during disturbance), 5th percentile 115 mm (70 mm). Do not revert.
+      # Median over ~60 s — the ONLY defence now. The asymmetric jump gate
+      # that used to follow this was REMOVED 2026-10-31 because it was the
+      # direct cause of the reported 0->100 jumping on an empty tank:
+      #
+      #   The gate accepted any DOWNWARD move (shorter distance) instantly,
+      #   on the premise that a shorter reading can only be the true echo
+      #   returning or the tank filling. With the tank EMPTY that premise is
+      #   false — the short readings ARE the wall reflections — so the gate
+      #   snapped to the false-full value and then HELD it (gating the real
+      #   upward correction) until the 6 h resync fired, producing exactly
+      #   the full<->empty oscillation that was reported.
+      #
+      # A median needs >50 % of the 120-sample window to move before it
+      # shifts, so it rejects the ~2 % short-echo minority on its own, in
+      # both directions, with no gate. See the filter_quantile note above
+      # and echo-remediation doc §9/§11 for why a gate cannot be made to
+      # work across both the full and empty regimes.
       - quantile:
-          window_size: 120
-          send_every: 20
+          window_size: 120      # ~60 s at the measured ~2 Hz frame rate
+          send_every: 20        # publish every ~10 s
           send_first_at: 20
           quantile: ${filter_quantile}
 
-      # Asymmetric jump gate.
-      #
-      # Needed because the sensor sometimes settles into a CLEAN,
-      # single-moded, but WRONG long state — one measured hour had 98 % of
-      # samples agreeing on 0.78 m while the reference said 0.37 m. No
-      # statistical filter sees through a unimodal distribution; only the
-      # SIZE of the step into it gives it away.
-      #
-      # NEVER make this symmetric. A fill drops 450-500 mm in under an hour
-      # and must track instantly; real drainage creeps ~0.6 mm per emission.
-      # Rate limiting was also tried and rejected: it lets a reflection in
-      # slowly, producing a smooth 20-point phantom drain that reads exactly
-      # like losing water.
-      #
-      # KNOWN LIMIT, accepted deliberately: a 6 h resync also delays a
-      # genuine large drawdown. Tue 07-28 (false, pressure flat) and
-      # Wed 07-29 (real, pressure 322->253 hPa) are indistinguishable from
-      # the distance stream alone. That is why the low-water alarm below
-      # reads the UNGATED sensor instead of this one.
-      - lambda: |-
-          const float max_jump_m   = ${max_jump_m}f;
-          const uint32_t resync_ms = ${resync_minutes}UL * 60UL * 1000UL;
-          uint32_t now = millis();
-          if (isnan(id(gate_last))) {
-            id(gate_last)    = x;
-            id(gate_seen_ms) = now;
-            return x;
-          }
-          if (x <= id(gate_last) || (x - id(gate_last)) <= max_jump_m) {
-            id(gate_last)    = x;                 // fill, or real slow drain
-            id(gate_seen_ms) = now;
-          } else if ((uint32_t)(now - id(gate_seen_ms)) >= resync_ms) {
-            id(gate_last)    = x;                 // held too long; accept + flag
-            id(gate_seen_ms) = now;
-          }
-          return id(gate_last);
-
-  # NEW — UNGATED fast path. Same low-quantile rejection of multipath, but
-  # no jump gate, so it can never be held stale. Exists ONLY to back the
-  # low-water alarm: a real fast drain must not be masked by a 6 h hold.
-  # Noisier than 'tank_distance' on purpose — the alarm's delayed_on is
-  # what suppresses the noise, not a filter.
+  # Faster-responding level for the low-water alarm: a shorter window than
+  # 'tank_distance' so a genuine fast drain is not delayed. Same median
+  # estimator. Noisier than 'tank_distance' on purpose — the alarm's
+  # delayed_on is what suppresses the noise, not a filter.
   - platform: template
     name: "Tank Distance Fast"
     id: tank_distance_fast
@@ -265,21 +249,6 @@ sensor:
           send_every: 20
           send_first_at: 20
           quantile: ${filter_quantile}
-
-  # NEW — how long the gate has been holding without accepting a value.
-  # The honest trust signal: a large number means the reported level is
-  # being actively suppressed and may be stale.
-  - platform: template
-    name: "Tank Echo Age"
-    unit_of_measurement: "min"
-    icon: "mdi:clock-alert-outline"
-    accuracy_decimals: 0
-    state_class: measurement
-    entity_category: diagnostic
-    update_interval: 30s
-    lambda: |-
-      if (isnan(id(gate_last))) return NAN;
-      return (float)((uint32_t)(millis() - id(gate_seen_ms))) / 60000.0f;
 
   # Tank fill percentage. Depth = tank_height_m - measured distance.
   - platform: template
@@ -360,16 +329,6 @@ binary_sensor:
       return id(tank_distance_fast).state > ${low_water_distance_m};
     filters:
       - delayed_on: 15min
-
-  # NEW — the reported level is being suppressed by the gate and may be
-  # stale. Fires at half the resync interval, so it warns BEFORE the gate
-  # capitulates rather than after.
-  - platform: template
-    name: "Tank Level Unreliable"
-    device_class: problem
-    lambda: |-
-      if (isnan(id(gate_last))) return {};
-      return (uint32_t)(millis() - id(gate_seen_ms)) > (${resync_minutes}UL * 30UL * 1000UL);
 
 # M5 Atom Lite built-in RGB NeoPixel (GPIO27)
 light:
