@@ -7,11 +7,13 @@ from typing import cast
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import LocalThingsCoordinator
 from .entity import LocalThingsEntity, _is_included
+from .registry.capabilities.cooktop import LEGACY_HOOD_MODE, paired_hood_running
 from .registry.entities import NumberDesc
 
 
@@ -22,18 +24,21 @@ async def async_setup_entry(
 ) -> None:
     coordinator: LocalThingsCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        LocalThingsNumber(coordinator, b)
+        (
+            LocalThingsPairedHoodTimer(coordinator, b)
+            if b.capability is LEGACY_HOOD_MODE
+            else LocalThingsNumber(coordinator, b)
+        )
         for b in coordinator.bound
         if isinstance(b.desc, NumberDesc) and _is_included(b, coordinator)
     )
 
 
 class LocalThingsNumber(LocalThingsEntity, NumberEntity):
-    _attr_mode = NumberMode.SLIDER
-
     def __init__(self, coordinator: LocalThingsCoordinator, bound) -> None:
         super().__init__(coordinator, bound)
         desc = cast(NumberDesc, bound.desc)
+        self._attr_mode = NumberMode(desc.mode)
         self._attr_native_unit_of_measurement = desc.unit
         self._attr_device_class = (
             NumberDeviceClass(desc.device_class) if desc.device_class else None
@@ -52,6 +57,12 @@ class LocalThingsNumber(LocalThingsEntity, NumberEntity):
             return desc.unit_fn(self.coordinator.resource(self._bound.href))
         return self._attr_native_unit_of_measurement
 
+    def _live_bounds(self) -> tuple[float, float, float] | None:
+        desc = cast(NumberDesc, self._bound.desc)
+        if desc.bounds_fn is None:
+            return None
+        return desc.bounds_fn(self.coordinator.resource(self._bound.href), self._resources)
+
     def _range_from_resource(self) -> list | None:
         desc = cast(NumberDesc, self._bound.desc)
         if not desc.range_field:
@@ -61,6 +72,9 @@ class LocalThingsNumber(LocalThingsEntity, NumberEntity):
 
     @property
     def native_min_value(self) -> float:
+        bounds = self._live_bounds()
+        if bounds is not None:
+            return bounds[0]
         desc = cast(NumberDesc, self._bound.desc)
         if desc.native_min_fn is not None:
             return desc.native_min_fn(self.coordinator.resource(self._bound.href))
@@ -73,6 +87,9 @@ class LocalThingsNumber(LocalThingsEntity, NumberEntity):
 
     @property
     def native_max_value(self) -> float:
+        bounds = self._live_bounds()
+        if bounds is not None:
+            return bounds[1]
         desc = cast(NumberDesc, self._bound.desc)
         if desc.native_max_fn is not None:
             return desc.native_max_fn(self.coordinator.resource(self._bound.href))
@@ -85,6 +102,9 @@ class LocalThingsNumber(LocalThingsEntity, NumberEntity):
 
     @property
     def native_step(self) -> float | None:
+        bounds = self._live_bounds()
+        if bounds is not None:
+            return bounds[2]
         desc = cast(NumberDesc, self._bound.desc)
         if desc.step_fn is not None:
             return desc.step_fn(self.coordinator.resource(self._bound.href))
@@ -98,3 +118,18 @@ class LocalThingsNumber(LocalThingsEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_send_command(self._bound, value)
+
+
+class LocalThingsPairedHoodTimer(LocalThingsNumber):
+    """A legacy cooktop's paired hood shutoff timer (issue #676), in
+    minutes with 0 to cancel. The hood ignores a timer set while its fan is
+    off, so that's refused rather than silently dropped. Cancelling always
+    goes through."""
+
+    async def async_set_native_value(self, value: float) -> None:
+        if value > 0 and not paired_hood_running(self._resources):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="paired_hood_fan_off",
+            )
+        await super().async_set_native_value(value)

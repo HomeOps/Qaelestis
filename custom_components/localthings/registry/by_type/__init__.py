@@ -13,7 +13,7 @@ from . import (
     dishwasher,
     dryer,
     ehs,
-    induction_cooktop,
+    microfiber_filter,
     microwave,
     oven,
     range_hood,
@@ -49,7 +49,7 @@ _REGISTRY_BY_KEY: dict[str, DeviceRegistry] = {
     "dishwasher": dishwasher.REGISTRY,
     "dryer": dryer.REGISTRY,
     "ehs": ehs.REGISTRY,
-    "induction_cooktop": induction_cooktop.REGISTRY,
+    "microfiber_filter": microfiber_filter.REGISTRY,
     "microwave": microwave.REGISTRY,
     "oven": oven.REGISTRY,
     "range": _range.REGISTRY,
@@ -104,6 +104,8 @@ _BOARD_TOKEN_TO_KEY: dict[str, str] = {
     "FAC": "airconditioner",
     "CAWW": "airconditioner",
     "CAC": "airconditioner",  # issue #191
+    "DUCT": "airconditioner",  # issue #501 -- slim duct
+    "RHS": "airconditioner",  # issue #551 -- AI Air Combo ventilator
     "ARA": "airconditioner",
     "DHM": "dehumidifier",  # issue #88 -- target humidity, no climate
     "EHS": "ehs",  # heat pump: zone1 heating/cooling + domestic hot water
@@ -115,17 +117,15 @@ _BOARD_TOKEN_TO_KEY: dict[str, str] = {
     "AIR": "air_purifier",  # issue #130 (TP1X_DA-AC-AIR)
     "WATERPURIFIER": "water_purifier",  # issue #90
     "ADW": "dishwasher",
+    # issue #626 -- the microfiber filter, whose /oic/d can answer empty.
+    "AMF": "microfiber_filter",
     "AHD": "range_hood",
     "RANGE": "range",  # issue #44 -- cooktop+oven combo
     "OVEN": "oven",  # issue #55 -- wall oven, no burners
     "MICROWAVE": "microwave",  # issues #66, #121
-    "COOKTOP": "induction_cooktop",  # issue #86 -- standalone, no oven
-    # Legacy ARTIK051 gas cooktops ('ARTIK051_GB_CT_001'): burner state
-    # lives in /mode/vs/0's options array. Deliberately the loosest entry
-    # here -- reached only when nothing more specific matched, since its
-    # description ('ARTIK051_GLOBAL_COOKTOP') would otherwise read as an
-    # induction cooktop via COOKTOP above (see for_device_by_model's field
-    # ordering).
+    "COOKTOP": "cooktop",  # issue #86 -- standalone, no oven
+    # Legacy ARTIK051 gas cooktops ('ARTIK051_GB_CT_001'), whose modelNum
+    # carries no COOKTOP token.
     "CT": "cooktop",
     "VSKR": "vacuum_station",  # issue #131 -- stick-vacuum clean station
     "DF": "air_dresser",  # issue #162
@@ -186,13 +186,18 @@ def _consumer_model_key(description: str) -> str | None:
     dishwasher's 'ADW-WW-RTL-24-AILITE' would offer up a bare 'WW' and
     route to washer).
 
-    Only a 2-letter prefix match, so e.g. 'WAC' (Window AC, issue #87) also
-    matches 'WA' (top-load washer, issue #106) at this granularity --
-    for_device_by_model() consults the board-family table first and this
-    only as a fallback, so that ambiguity resolves correctly.
+    A segment counts only when it carries digits or is a bare two-letter
+    code, so a word such as 'WAC' (Window AC, issue #87) or 'WALL' (#681)
+    never reads as a 'WA' top-load washer (issue #106). This is still the
+    weakest evidence, so for_device_by_model() consults it last.
     """
     segments = (description or "").split("/", 1)[0].split("_")
     for segment in reversed(segments):
+        # A consumer model carries digits ('WA8000T'), or is the bare board
+        # code ('DA_DW_TP1_21_COMMON'). A word is neither: the NW9300MD's
+        # 'LCD_OV_WALL_16K_DIV' slot read as a 'WA' washer (#681).
+        if len(segment) != 2 and not any(c.isdigit() for c in segment):
+            continue
         key = _CONSUMER_PREFIX_TO_KEY.get(segment[:2].upper())
         if key is not None:
             return key
@@ -212,18 +217,14 @@ def _consumer_model_key(description: str) -> str | None:
 #
 # `x.com.st.d.*` entries are SmartThings' own vendor extension to the OCF
 # device-type vocabulary, for categories with no `oic.d.*` equivalent.
-#
-# `oic.d.cooktop` is deliberately absent: a TP1X_DA-KS-COOKTOP induction
-# reports it, but `cooktop` and `induction_cooktop` are unrelated registries
-# sharing the English word (see by_type/cooktop.py's docstring) -- the OCF
-# type doesn't distinguish them, and as the primary signal it would override
-# a correct `COOKTOP`/`CT` board token. No unambiguous key to point at, so no
-# row.
 _OIC_TYPE_TO_KEY: dict[str, str] = {
     "oic.d.airconditioner": "airconditioner",
     "oic.d.airpurifier": "air_purifier",
+    # Both cooktop board generations (issues #86, #508); see by_type/cooktop.py.
+    "oic.d.cooktop": "cooktop",
     "oic.d.dishwasher": "dishwasher",
     "oic.d.dryer": "dryer",
+    "oic.d.microwave": "microwave",  # issue #433
     "oic.d.oven": "oven",
     "oic.d.range": "range",  # issue #324 -- oven+cooktop combo, no /information/vs/0
     "oic.d.refrigerator": "refrigerator",
@@ -232,6 +233,9 @@ _OIC_TYPE_TO_KEY: dict[str, str] = {
     "x.com.st.d.airqualitysensor": "air_monitor",
     "x.com.st.d.dehumidifier": "dehumidifier",
     "x.com.st.d.hood": "range_hood",  # AHD-WW-TP1-22-COMMON
+    # Microfiber laundry-lint filter (AMF-WW-TP1-22-COMMON, issue #475). It
+    # reports washer resources too, but nothing that runs a cycle (#626).
+    "x.com.st.d.microfiberfilter": "microfiber_filter",
     "x.com.st.d.stickcleaner": "vacuum_station",
     "x.com.st.d.steamcloset": "air_dresser",
     "x.com.st.d.winecellar": "refrigerator",  # issue #328 -- same TP1X_REF_21K board
@@ -252,6 +256,27 @@ def for_device_by_oic_type(device_types: Sequence[str]) -> DeviceRegistry | None
     return None
 
 
+# The type an 8888 bridge record reports for itself (`deviceSubType`, which
+# legacy_http carries into /information/vs/0) -> registry key. Only the 8888
+# family reports it, so it names the type where `/oic/d` can't: the bridge
+# serves none. `CombiOven` is left out because it covers both the NQ70M6650DS's
+# microwave and the NW9300MD's oven (#674, #681), which the resource
+# signatures tell apart.
+_DEVICE_SUBTYPE_TO_KEY: dict[str, str] = {
+    "Cooktop": "cooktop",
+    "Dryer": "dryer",  # TP6X_DRYER, DV80M8214AW (#636, #646)
+    "Room_Air_Conditioner": "airconditioner",
+    "WallOven": "oven",
+    "Washer": "washer",  # TP6X_WASHER, WW6500
+}
+
+
+def for_device_by_subtype(subtype: object) -> DeviceRegistry | None:
+    """Device-type detection from an 8888 record's own `deviceSubType`."""
+    key = _DEVICE_SUBTYPE_TO_KEY.get(subtype) if isinstance(subtype, str) else None
+    return _REGISTRY_BY_KEY[key] if key is not None else None
+
+
 def for_device_by_model(model_num: str, description: str) -> DeviceRegistry | None:
     """Device-type detection from /information/vs/0's model strings.
 
@@ -265,10 +290,7 @@ def for_device_by_model(model_num: str, description: str) -> DeviceRegistry | No
     2. The same tokens in `description`. Some units carry the board token only
        there (a scrubbed or placeholder modelNum, e.g. description
        'TP1X_REF_21K'). This runs second so that a device whose two fields
-       disagree is typed by its modelNum: the legacy gas cooktop reports
-       'ARTIK051_GB_CT_001' (CT -> gas cooktop) alongside
-       'ARTIK051_GLOBAL_COOKTOP' (COOKTOP -> induction cooktop), and the
-       board is right.
+       disagree is typed by its modelNum, which names the board.
     3. The consumer-model prefix in `description` (washer/dryer/dishwasher).
        Last, because a bare two-letter prefix is the fuzziest evidence here
        and would otherwise shadow the specific board tokens above.
@@ -329,9 +351,15 @@ def for_device_by_resources(resources: dict[str, dict]) -> DeviceRegistry | None
             m in supported_modes for m in ("MicroWave", "MicroWaveGrill", "MicroWaveConvection")
         ):
             return _REGISTRY_BY_KEY["microwave"]
-        if "Bake" in supported_modes:
+        # A Flex Duo's upper cavity offers only Upper* modes while its
+        # divider is in (#572), so any Bake mode counts.
+        if any(isinstance(m, str) and m.endswith("Bake") for m in supported_modes):
             if "/cooktopmonitoring/vs/0" in resources or "/cooktop/status/vs/0" in resources:
                 return _REGISTRY_BY_KEY["range"]
+            return _REGISTRY_BY_KEY["oven"]
+        # An 8888 lower cavity with its divider out offers only NoOperation;
+        # its /connected/vs/0 is whether the divider is in (#681).
+        if list(supported_modes) == ["NoOperation"] and "/connected/vs/0" in resources:
             return _REGISTRY_BY_KEY["oven"]
     return None
 
@@ -350,8 +378,9 @@ def resolve(
     live capability surface a registry must bind; `for_device_by_resources`
     is deliberately strict (multiple independent details required) so this
     can correct misleading metadata without a common href overriding an
-    unrelated family. When no signature matches, `/oic/d`'s `rt` wins over
-    model-string parsing.
+    unrelated family. When no signature matches, the type the device names
+    itself -- `/oic/d`'s `rt`, or an 8888 record's `deviceSubType` -- wins
+    over model-string parsing.
 
     `/otninformation/vs/0`'s oneUiVersion is deliberately not consulted:
     only a minority of hardware populates it, every device that does is
@@ -363,6 +392,7 @@ def resolve(
     return (
         for_device_by_resources(resources)
         or for_device_by_oic_type(device_types)
+        or for_device_by_subtype(info.get("x.com.samsung.da.deviceSubType", ""))
         or for_device_by_model(
             info.get("x.com.samsung.da.modelNum", ""),
             info.get("x.com.samsung.da.description", ""),

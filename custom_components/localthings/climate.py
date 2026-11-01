@@ -80,12 +80,14 @@ from .registry.capabilities.airconditioner import (
     _temperature_step,
     extend_option_code_bit,
     has_extend_option_code,
+    has_heating_capacity,
     has_option_code,
     is_legacy_board,
     option_code_bit,
 )
 from .registry.capabilities.common import normalize_temp_unit
-from .registry.entities import ClimateDesc
+from .registry.entities import ClimateDesc, ZoneClimateDesc
+from .zone_climate import LocalThingsZoneClimate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -97,7 +99,20 @@ _SUPPORTED_FIELD = "x.com.samsung.da.supportedModes"
 # driven by the power resource).
 _DEVICE_TO_HVAC: dict[str, HVACMode] = {
     "Cool": HVACMode.COOL,
+    # AI Air Combo ventilator (TP1X_DA-AC-RHS-01001, #551). Listed before
+    # 'Dry' so that stays the reverse map's fallback.
+    "IndoorDehumidification": HVACMode.DRY,
     "Dry": HVACMode.DRY,
+    # The fresh-air ventilators' fan-only modes (ACA-KR-TP2-21-AN9000, #522;
+    # TP1X_DA-AC-RHS-01001, #551). Fan-only gives the climate card an on
+    # state; the ventilation_mode select tells them apart. Listed before
+    # 'Fan'/'Wind' so neither becomes the reverse map's fallback.
+    "Purification": HVACMode.FAN_ONLY,
+    "Ventilation": HVACMode.FAN_ONLY,
+    "SmartVentilation": HVACMode.FAN_ONLY,
+    "AutoVentilation": HVACMode.FAN_ONLY,
+    "FreshAirIntake": HVACMode.FAN_ONLY,
+    "IndoorPurification": HVACMode.FAN_ONLY,
     # Fan-only is spelled 'Wind' on some boards and 'Fan' on others; both map
     # to FAN_ONLY. _device_code_for_hvac() resolves the write-side code from
     # the unit's own supportedModes, so this reverse map is only a fallback
@@ -213,6 +228,11 @@ async def async_setup_entry(
         for b in coordinator.bound
         if isinstance(b.desc, ClimateDesc) and _is_included(b, coordinator)
     )
+    async_add_entities(
+        LocalThingsZoneClimate(coordinator, b)
+        for b in coordinator.bound
+        if isinstance(b.desc, ZoneClimateDesc) and _is_included(b, coordinator)
+    )
 
 
 def _first(value):
@@ -257,7 +277,6 @@ class LocalThingsClimate(LocalThingsEntity, ClimateEntity):
         self._attr_supported_features = (
             ClimateEntityFeature.TARGET_TEMPERATURE
             | ClimateEntityFeature.FAN_MODE
-            | ClimateEntityFeature.SWING_MODE
             | ClimateEntityFeature.PRESET_MODE
             | ClimateEntityFeature.TURN_ON
             | ClimateEntityFeature.TURN_OFF
@@ -266,6 +285,14 @@ class LocalThingsClimate(LocalThingsEntity, ClimateEntity):
         # these properties are read on every refresh, so an un-deduped
         # warning would spam the log for a genuinely unrecognized code.
         self._warned_unmapped: set[tuple[str, str]] = set()
+
+    @property
+    def supported_features(self) -> ClimateEntityFeature:
+        # HA renders an empty swing menu if this flag has no matching options.
+        features = self._attr_supported_features
+        if self.swing_modes:
+            features |= ClimateEntityFeature.SWING_MODE
+        return features
 
     # -- resource helpers ---------------------------------------------------
 
@@ -453,7 +480,12 @@ class LocalThingsClimate(LocalThingsEntity, ClimateEntity):
         paths resolve codes through here, so a learned code is selectable
         and writable by virtue of appearing in one list.
         """
-        supported = list(self._rep(href).get(_SUPPORTED_FIELD) or [])
+        rep = self._rep(href)
+        supported = list(rep.get(_SUPPORTED_FIELD) or [])
+        if href == MODE_HREF and "Heat" not in supported and has_heating_capacity(rep):
+            # The TP6X_RAC bridge leaves Heat off a heat pump's list (#589).
+            # Reading 'Heat' is confirmed; writing it is not yet.
+            supported.append("Heat")
         learned = self.coordinator.learned_modes(self._bound.subdevice.to_actual(href))
         return supported + [code for code in learned if code not in supported]
 
@@ -591,6 +623,10 @@ class LocalThingsClimate(LocalThingsEntity, ClimateEntity):
                 continue
             if mapped not in modes:
                 modes.append(mapped)
+        # hvac_mode reads AIComfort as AUTO, so a unit with no plain Auto (the
+        # AI Air Combo ventilator, #551) still needs AUTO offered for it.
+        if HVACMode.AUTO not in modes and _AI_COMFORT_MODE in self._supported(MODE_HREF):
+            modes.append(HVACMode.AUTO)
         return modes
 
     # -- fan / swing / preset ----------------------------------------------
@@ -664,10 +700,18 @@ class LocalThingsClimate(LocalThingsEntity, ClimateEntity):
         """Device mode code for an HA hvac_mode, chosen from this unit's own
         supportedModes -- fan-only is 'Wind' on some boards and 'Fan' on
         others, so the reverse map alone can't pick the code this unit
-        accepts."""
-        for code in self._supported(MODE_HREF):
+        accepts. The current mode wins when it already is one: a
+        ventilator's three modes are all fan-only, and turning it on must not
+        swap SmartVentilation for Purification."""
+        current = _first(self._rep(MODE_HREF).get(_MODES_FIELD))
+        if _DEVICE_TO_HVAC.get(current) == hvac_mode:
+            return current
+        supported = self._supported(MODE_HREF)
+        for code in supported:
             if _DEVICE_TO_HVAC.get(code) == hvac_mode:
                 return code
+        if hvac_mode == HVACMode.AUTO and _AI_COMFORT_MODE in supported:
+            return _AI_COMFORT_MODE  # same reasoning as hvac_modes' AUTO fallback
         return _HVAC_TO_DEVICE.get(hvac_mode)
 
     async def async_set_temperature(self, **kwargs) -> None:
@@ -696,6 +740,9 @@ class LocalThingsClimate(LocalThingsEntity, ClimateEntity):
             return
         if not self._is_on():
             await self.coordinator.async_send_command(self._bound, ("power", True))
+        # The board might answer 4.00 to a write of the mode it is already in
+        if device == _first(self._rep(MODE_HREF).get(_MODES_FIELD)):
+            return
         await self.coordinator.async_send_command(self._bound, ("mode", device))
 
     async def async_turn_on(self) -> None:

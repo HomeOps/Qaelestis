@@ -1,6 +1,6 @@
 """Washer device registry."""
 
-from ..capabilities import common, dishwasher, ignored, laundry, operational, washer
+from ..capabilities import common, dishwasher, ignored, laundry, washer
 from ._base import DeviceRegistry, _build
 
 REGISTRY = DeviceRegistry(
@@ -15,7 +15,12 @@ REGISTRY = DeviceRegistry(
             laundry.BUZZER_SOUND,
             laundry.JOB_BEGINNING_STATUS,
             common.WATER_METER,
-            operational.OPERATIONAL_STATE,
+            # Inert on washers that don't report either href; kept so a
+            # washer reporting a filter still binds it. The AMF filter has
+            # its own registry now (#626).
+            common.WATER_FILTER,
+            common.FILTER_STATUS,
+            washer.WASHER_OPERATIONAL_STATE,
             dishwasher.DIAGNOSIS,
         ]
     ),

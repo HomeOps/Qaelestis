@@ -12,7 +12,12 @@ from .entities import SamsungEntityDescription
 class Capability:
     href: str | None = None
     entities: tuple[SamsungEntityDescription, ...] = ()
-    poll_tier: str = "cold"  # 'hot' | 'warm' | 'cold'
+    # 'hot'/'warm' get their own sub-poll GETs between summary polls; 'cold'
+    # rides the /device/0 batch. 'probe' is for an href no batch carries
+    # (issue #301's /file/transfer/vs/0 is absent from all 83 batch fixtures
+    # on record), so discovery can never see it to tier it -- the coordinator
+    # reads registry.PROBE_HREFS directly instead.
+    poll_tier: str = "cold"  # 'hot' | 'warm' | 'cold' | 'probe'
     rt_filter: str | None = None  # bind only if rt_filter in rep.get('rt', ())
     href_prefix: str | None = None  # pattern caps only: bind only if href starts with this
     strip_prefix_in_key: bool = False  # strip href_prefix segs before building key_override
@@ -25,3 +30,7 @@ class Capability:
     # Rare optional hook — only operational-state-style resources use this.
     on_observation: Callable[[dict, dict], None] | None = None
     project: Callable[[dict, dict], dict] | None = None
+    # For a subdevice whose identity resource reports another model (#676's
+    # hood slot reports the cooktop's board): its resources -> its own
+    # model, or None when it doesn't apply.
+    model_fn: Callable[[dict], str | None] | None = None

@@ -9,20 +9,31 @@ vocabulary with the room-AC family in airconditioner.py beyond the DA_AC_
 board prefix -- EHS reports its own /mode/*/vs/0 and /temperatures/*/vs/0
 shapes, not airconditioner.py's HREF_MODE/HREF_TEMP* OCF-pattern hrefs.
 
-zone1 has no HA platform with matching semantics (a leaving-water-
-temperature setpoint, not a thermostat with HVAC modes), so it stays
-switch/select/number/sensor -- same shape as dehumidifier.py's power/mode/
-humidity split. dhw is a real HA water_heater.py entity (see DHW below),
-following the same primary-resource-plus-sibling-reads pattern as
-airconditioner.py's CLIMATE/climate.py.
+Each space-heating zone is an HA climate entity (issue #581), as in HA
+core's smartthings integration: the zone's own power and temperature plus
+the shared /mode/vs/0. zone1's older switch/select/number stay for existing
+installs, disabled by default. dhw is a water_heater.py entity (see DHW
+below). Both follow airconditioner.py's primary-resource-plus-sibling-reads
+pattern.
 
 Verified against a real TP1X_DA_AC_EHS_01001_0000 diagnostics dump
 (firmware AEH-WW-TP1-22-AE6000_17260402, TizenRT 3.1 / DAWIT 2.0).
 """
 
+from dataclasses import replace
+
 from ..capability import Capability
-from ..entities import NumberDesc, SelectDesc, SensorDesc, SwitchDesc, WaterHeaterDesc
-from .common import normalize_temp_unit
+from ..entities import (
+    BinarySensorDesc,
+    NumberDesc,
+    SelectDesc,
+    SensorDesc,
+    SwitchDesc,
+    WaterHeaterDesc,
+    ZoneClimateDesc,
+)
+from . import common
+from .common import lifetime_wh_to_kwh, normalize_temp_unit
 
 
 def _num(v):
@@ -60,14 +71,70 @@ def _step(rep, default):
     return default if step is None else step
 
 
+# Canonical zone hrefs. Mode is device-wide: zone2 has no /mode/zone2/vs/0
+# on issue #581's board, so both zones' climate entities share /mode/vs/0.
+HREF_ZONE_MODE = "/mode/vs/0"
+HREF_ZONE1_POWER = "/power/vs/0"
+HREF_ZONE1_TEMPERATURE = "/temperatures/indoor/vs/0"
+HREF_ZONE2_POWER = "/power/zone2/vs/0"
+HREF_ZONE2_TEMPERATURE = "/temperatures/zone2/indoor/vs/0"
+
+
+def _segs(href):
+    return href.strip("/").split("/")
+
+
+def _zone_write(power_href, temperature_href):
+    """(kind, value) -> (path_segs, body) for one zone's climate entity, same
+    contract as _dhw_write below."""
+
+    def write(payload, rep, href=None):
+        kind, value = payload
+        if kind == "power":
+            return (_segs(power_href), {"x.com.samsung.da.power": "On" if value else "Off"})
+        if kind == "mode":
+            return (_segs(HREF_ZONE_MODE), {"x.com.samsung.da.modes": [value]})
+        if kind == "temperature":
+            return (_segs(temperature_href), {"x.com.samsung.da.desired": str(float(value))})
+        return None
+
+    return write
+
+
+def _zone_climate(key, power_href, temperature_href):
+    return ZoneClimateDesc(
+        key=key,
+        # Representative scalar for the snapshot; the entity reads its
+        # siblings itself, like DHW's rep_fn below.
+        field="x.com.samsung.da.desired",
+        value_fn=_num,
+        power_href=power_href,
+        mode_href=HREF_ZONE_MODE,
+        temperature_href=temperature_href,
+        write_fn=_zone_write(power_href, temperature_href),
+    )
+
+
+def _zone_temperature_sensor(key):
+    return SensorDesc(
+        key=key,
+        field="x.com.samsung.da.current",
+        device_class="temperature",
+        unit_fn=_temp_unit,
+        state_class="measurement",
+        value_fn=_num,
+    )
+
+
 ZONE_POWER = Capability(
-    href="/power/vs/0",
+    href=HREF_ZONE1_POWER,
     poll_tier="warm",
     entities=(
         SwitchDesc(
             key="zone_power",
             field="x.com.samsung.da.power",
             icon="mdi:radiator",
+            enabled_default=False,
             value_fn=lambda v: v == "On",
             write_fn=lambda p, rep, href=None: (
                 ["power", "vs", "0"],
@@ -78,12 +145,13 @@ ZONE_POWER = Capability(
 )
 
 ZONE_MODE = Capability(
-    href="/mode/vs/0",
+    href=HREF_ZONE_MODE,
     poll_tier="warm",
     entities=(
         SelectDesc(
             key="zone_mode",
             rep_fn=_first_mode,
+            enabled_default=False,
             icon="mdi:sun-snowflake-variant",
             options_field="x.com.samsung.da.supportedModes",
             write_fn=lambda p, rep, href=None: (
@@ -98,23 +166,18 @@ ZONE_MODE = Capability(
 # room setpoint, not a literal water temperature -- EHS zone control is
 # leaving-water-temperature-based, same convention as the dhw loop below.
 ZONE_TEMPERATURE = Capability(
-    href="/temperatures/indoor/vs/0",
+    href=HREF_ZONE1_TEMPERATURE,
     poll_tier="warm",
     entities=(
-        SensorDesc(
-            key="zone_temperature",
-            field="x.com.samsung.da.current",
-            device_class="temperature",
-            unit_fn=_temp_unit,
-            state_class="measurement",
-            value_fn=_num,
-        ),
+        _zone_temperature_sensor("zone_temperature"),
+        _zone_climate("zone_climate", HREF_ZONE1_POWER, HREF_ZONE1_TEMPERATURE),
         NumberDesc(
             key="zone_target_temperature",
             field="x.com.samsung.da.desired",
             device_class="temperature",
             unit_fn=_temp_unit,
             entity_category="config",
+            enabled_default=False,
             value_fn=_num,
             native_min_fn=lambda rep: _bounds(rep, 5.0, 30.0)[0],
             native_max_fn=lambda rep: _bounds(rep, 5.0, 30.0)[1],
@@ -126,6 +189,19 @@ ZONE_TEMPERATURE = Capability(
         ),
     ),
 )
+
+# Zone 2 (issue #581, TP1X_DA_AC_EHS_01002_0000): same fields as zone1's,
+# minus the temperature unit, which _temp_unit defaults to Celsius. Writes
+# mirror zone1's and need live confirmation.
+ZONE2_TEMPERATURE = Capability(
+    href=HREF_ZONE2_TEMPERATURE,
+    poll_tier="warm",
+    entities=(
+        _zone_temperature_sensor("zone2_temperature"),
+        _zone_climate("zone2_climate", HREF_ZONE2_POWER, HREF_ZONE2_TEMPERATURE),
+    ),
+)
+ZONE2_POWER = Capability(href=HREF_ZONE2_POWER, poll_tier="warm")
 
 # Canonical dhw resource hrefs. water_heater.py binds HREF_DHW_MODE via DHW
 # below and reads the sibling power/temperature hrefs off the coordinator
@@ -191,6 +267,67 @@ AWAY_MODE = Capability(
     ),
 )
 
+# Read on the MIM-H04EN Wi-Fi kit's heat pump (#682); the TP1X boards don't
+# report these.
+OUTDOOR_TEMPERATURE = Capability(
+    href="/temperatures/outside/vs/0",
+    poll_tier="cold",
+    entities=(
+        SensorDesc(
+            key="outdoor_temperature",
+            field="x.com.samsung.da.current",
+            device_class="temperature",
+            state_class="measurement",
+            unit="°C",
+            unit_fn=_temp_unit,
+            value_fn=_num,
+        ),
+    ),
+)
+
+# The MIM-H04EN kit reports one counter under both cumulativePower and
+# cumulativeConsumption (#682), so the second would be a duplicate sensor.
+ENERGY_METER = replace(
+    common.ENERGY_METER,
+    entities=tuple(e for e in common.ENERGY_METER.entities if e.key != "power_energy_kwh"),
+)
+
+# The heat delivered, next to /energy/consumption/vs/0's electricity used.
+HEAT_GENERATED = Capability(
+    href="/energy/generation/vs/0",
+    poll_tier="cold",
+    entities=(
+        SensorDesc(
+            key="heat_generated_kwh",
+            field="x.com.samsung.da.cumulativeGeneration",
+            device_class="energy",
+            state_class="total_increasing",
+            unit="kWh",
+            value_fn=lifetime_wh_to_kwh,
+        ),
+    ),
+)
+
+CONTROLLER_STATUS = Capability(
+    href="/controllerstatus/ehs/vs/0",
+    poll_tier="warm",
+    entities=(
+        BinarySensorDesc(
+            key="booster_heater",
+            field="x.com.samsung.da.ehs.boosterHeater",
+            device_class="running",
+            value_fn=lambda v: v is True or v == "true",
+        ),
+        # Only "Room" seen so far, so the raw value rather than an enum.
+        SensorDesc(
+            key="three_way_valve",
+            field="x.com.samsung.da.ehs.3wayValve",
+            icon="mdi:valve",
+            entity_category="diagnostic",
+        ),
+    ),
+)
+
 # EHS-scoped coverage: opaque vendor plumbing or resources with no
 # confirmed write contract on this dump. Not in the global ignored.IGNORED
 # since these are EHS-only shapes needing their own verification elsewhere.
@@ -204,7 +341,10 @@ _EHS_IGNORED = [
     "/reserverulesets/vs/0",  # opaque hex-encoded schedule reservation blob
     "/sac/installationinfo/vs/0",  # static outdoor/indoor installation info, diagnostic only
     "/actions/zone1/vs/0",  # zone1 schedule/timer program -- unmodeled for now
+    "/actions/zone2/vs/0",  # zone2 schedule/timer program -- unmodeled for now
     "/actions/dhw/vs/0",  # DHW schedule/timer program -- unmodeled for now
+    "/frequencyratio/vs/0",  # compressor frequency ratio with no unit or scale (#682)
+    "/subdevice/vs/0",  # the Wi-Fi kit's registration record for this heat pump (#682)
 ]
 
 COVERAGE = [Capability(href=h) for h in _EHS_IGNORED]

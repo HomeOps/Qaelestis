@@ -61,6 +61,9 @@
       "door_open": {
         "name": "Tür"
       },
+      "filter_blockage": {
+        "name": "Filterverstopfung"
+      },
       "filter_door_status": {
         "name": "Filtertür"
       },
@@ -103,6 +106,18 @@
       "softener_low": {
         "name": "Weichspüler niedrig"
       },
+      "add_wash_available": {
+        "name": "AddWash erlaubt"
+      },
+      "add_wash_indicator": {
+        "name": "AddWash bereit"
+      },
+      "pre_wash_selected": {
+        "name": "Vorwäsche gewählt"
+      },
+      "delay_wash_set": {
+        "name": "Startverzögerung eingestellt"
+      },
       "pouring": {
         "name": "Ausgabe läuft"
       },
@@ -111,6 +126,45 @@
       },
       "stick_ble_connected": {
         "name": "Stick per BLE verbunden"
+      },
+      "cooktop_burner": {
+        "name": "Brenner {number}"
+      },
+      "beep": {
+        "name": "Signalton"
+      },
+      "remind_beep": {
+        "name": "Signalton-Erinnerung am Ende"
+      },
+      "display_time_auto_sync": {
+        "name": "Uhrzeit automatisch synchronisieren"
+      },
+      "grease_filter_alarm": {
+        "name": "Fettfilter-Alarm"
+      },
+      "front_vent_open": {
+        "name": "Vordere Lüftung"
+      },
+      "dual_setpoint_enabled": {
+        "name": "Doppelter Sollwert aktiviert"
+      },
+      "divider": {
+        "name": "Trennwand"
+      },
+      "reservoir_open": {
+        "name": "Wassertank"
+      },
+      "wrinkle_prevent_active": {
+        "name": "Knitterschutz aktiv"
+      },
+      "cooktop_sync_control": {
+        "name": "Synchronsteuerung"
+      },
+      "cooktop_paused": {
+        "name": "Pausiert"
+      },
+      "booster_heater": {
+        "name": "Zusatzheizung"
       }
     },
     "button": {
@@ -122,6 +176,24 @@
       },
       "auto_clean_stop": {
         "name": "Automatische Reinigung stoppen"
+      },
+      "air_filter_reset": {
+        "name": "Luftfilter zurücksetzen"
+      },
+      "air_filter_pm1_reset": {
+        "name": "PM1.0-Filter zurücksetzen"
+      },
+      "hepa_filter_reset": {
+        "name": "HEPA-Filter zurücksetzen"
+      },
+      "deodor_filter_reset": {
+        "name": "Geruchsfilter zurücksetzen"
+      },
+      "hood_filter_reset": {
+        "name": "Haubenfilter zurücksetzen"
+      },
+      "filter_reset": {
+        "name": "Wasserfilter zurücksetzen"
       },
       "filter_time_reset": {
         "name": "Filterzeit zurücksetzen"
@@ -135,8 +207,14 @@
       "start": {
         "name": "Start"
       },
+      "sync_clock": {
+        "name": "Uhr synchronisieren"
+      },
       "stop": {
         "name": "Stopp"
+      },
+      "start_cooking": {
+        "name": "Garen starten"
       }
     },
     "climate": {
@@ -166,6 +244,12 @@
             }
           }
         }
+      },
+      "zone_climate": {
+        "name": "Zone 1"
+      },
+      "zone2_climate": {
+        "name": "Zone 2"
       }
     },
     "fan": {
@@ -173,6 +257,7 @@
         "state_attributes": {
           "preset_mode": {
             "state": {
+              "auto": "Automatisch",
               "mid": "Mittel",
               "sleep": "Schlaf",
               "smart": "Intelligent",
@@ -181,6 +266,14 @@
             }
           }
         }
+      }
+    },
+    "light": {
+      "lamp": {
+        "name": "Lampe"
+      },
+      "paired_hood_light": {
+        "name": "Licht der gekoppelten Dunstabzugshaube"
       }
     },
     "number": {
@@ -198,6 +291,9 @@
       },
       "oven_setpoint": {
         "name": "Sollwert"
+      },
+      "paired_hood_shutoff_timer": {
+        "name": "Abschalttimer der gekoppelten Dunstabzugshaube"
       },
       "sensing_interval": {
         "name": "KI-Reinigungsintervall"
@@ -222,6 +318,15 @@
       }
     },
     "select": {
+      "welcome_lighting_proximity": {
+        "name": "Empfindlichkeit der Willkommensbeleuchtung",
+        "state": {
+          "nearest": "Am nächsten",
+          "near": "Nah",
+          "middle": "Mittel",
+          "far": "Weit"
+        }
+      },
       "ai_energy_level": {
         "name": "KI-Energiesparstufe"
       },
@@ -230,6 +335,13 @@
       },
       "auto_door_timer": {
         "name": "Timer für automatischen Türöffner"
+      },
+      "auto_door_mode": {
+        "name": "Modus des automatischen Türöffners",
+        "state": {
+          "easy_open": "Leicht öffnen",
+          "wide_open": "Weit öffnen"
+        }
       },
       "beverage_zone_mode": {
         "name": "Getränkezonen-Modus",
@@ -247,7 +359,7 @@
         }
       },
       "cooler_temperature_setpoint": {
-        "name": "Kühlertemperatur"
+        "name": "Kühlschranktemperatur"
       },
       "day_brightness": {
         "name": "Schrankhelligkeit",
@@ -316,7 +428,8 @@
           "88": "Selbstreinigung",
           "85": "Schonprogramm",
           "0c": "Express",
-          "0d": "Selbstreinigung"
+          "0d": "Selbstreinigung",
+          "87": "Nur Spülen"
         }
       },
       "dispense_type": {
@@ -407,7 +520,27 @@
           "3a": "Hygienepflege",
           "3b": "Bettwäsche/Entstauben",
           "3c": "Sportkleidung",
-          "3d": "Jeansstoff"
+          "3d": "Jeansstoff",
+          "2f": "Intensiv",
+          "30": "Sportkleidung",
+          "32": "Pflegeleicht",
+          "33": "Dampf-Hygiene+",
+          "34": "Dampfauffrischung",
+          "35": "Knitterschutz",
+          "36": "Lüften",
+          "3e": "Kleine Beladung",
+          "2e": "Eco Normal"
+        }
+      },
+      "dryer_dry_level": {
+        "name": "Trockenstufe",
+        "state": {
+          "none": "Aus",
+          "damp": "Feucht",
+          "less": "Weniger",
+          "normal": "Normal",
+          "more": "Mehr",
+          "very": "Sehr"
         }
       },
       "favorite_capacity": {
@@ -435,6 +568,7 @@
       "flex_zone_mode": {
         "name": "Flex-Zonen-Modus",
         "state": {
+          "cv_ttype_rf9000a_fridge": "Kühlen",
           "cv_ttype_rf9000a_freeze": "Gefrieren",
           "cv_ttype_rf9000a_softfreeze": "Sanftgefrieren",
           "cv_ttype_rf9000a_meat_fish": "Fleisch/Fisch",
@@ -444,7 +578,10 @@
           "cv_fdr_deli": "Feinkost",
           "cv_fdr_beverage": "Getränke",
           "cv_fdr_meat": "Fleisch",
-          "cv_fdr_soft_freezer": "Sanftgefrierfach"
+          "cv_fdr_soft_freezer": "Sanftgefrierfach",
+          "fconvert_freezer": "Gefrieren",
+          "fconvert_fridge": "Kühlen",
+          "fconvert_off": "Aus"
         }
       },
       "heated_dry": {
@@ -510,7 +647,23 @@
           "frozen_pizza_plus": "Tiefkühlpizza+",
           "slow_cook": "Langsam garen",
           "plate_warm": "Tellerwärmen",
-          "air_fry": "Heißluftfritteuse"
+          "air_fry": "Heißluftfritteuse",
+          "convection_roast": "Umluftbraten",
+          "keep_warm": "Warmhalten",
+          "bread_proof": "Teig gehen lassen",
+          "dehydrate": "Dörren",
+          "self_clean": "Selbstreinigung",
+          "air_fryer": "Heißluftfritteuse",
+          "upper_broil": "Grillen (oben)",
+          "upper_convection_bake": "Umluftbacken (oben)",
+          "upper_convection_roast": "Umluftbraten (oben)",
+          "lower_bake": "Backen (unten)",
+          "lower_convection_bake": "Umluftbacken (unten)",
+          "steam_bake": "Dampfbacken",
+          "steam_roast": "Dampfbraten",
+          "upper_steam_bake": "Dampfbacken (oben)",
+          "descale": "Entkalken",
+          "drain": "Wasser ablassen"
         }
       },
       "operating_mode": {
@@ -521,7 +674,9 @@
         "state": {
           "fdr_wine": "Wein",
           "fdr_deli": "Feinkost",
-          "fdr_drinks": "Getränke"
+          "fdr_drinks": "Getränke",
+          "ttype_meat_fish": "Fleisch/Fisch",
+          "ttype_rf9000a_fridge": "Kühlen"
         }
       },
       "winecellar_pantry_zone_mode": {
@@ -552,6 +707,15 @@
       "rinse_cycles": {
         "name": "Spülgänge"
       },
+      "laundry_out_time": {
+        "name": "Erinnerung Wäsche entnehmen",
+        "state": {
+          "0": "Aus",
+          "30": "Alle 30 Min.",
+          "60": "Alle 60 Min.",
+          "90": "Alle 90 Min."
+        }
+      },
       "sensing_mode": {
         "name": "KI-Reinigungsaktion",
         "state": {
@@ -575,6 +739,17 @@
           "01": "Niedrig",
           "02": "Mittel",
           "03": "Hoch"
+        }
+      },
+      "soil_level": {
+        "name": "Verschmutzungsgrad",
+        "state": {
+          "none": "Keine",
+          "extra_light": "Extra leicht",
+          "light": "Leicht",
+          "normal": "Normal",
+          "heavy": "Stark",
+          "extra_heavy": "Extra stark"
         }
       },
       "sound_mode": {
@@ -607,7 +782,9 @@
           "no_spin": "Ohne Schleudern",
           "low": "Niedrig",
           "medium": "Mittel",
-          "high": "Hoch"
+          "high": "Hoch",
+          "extra_low": "Extra niedrig",
+          "extra_high": "Extra hoch"
         }
       },
       "wash_temperature": {
@@ -618,23 +795,66 @@
           "cool": "Kühl",
           "warm": "Warm",
           "hot": "Heiß",
-          "extra_hot": "Extra heiß"
+          "extra_hot": "Extra heiß",
+          "tap_cold": "Leitungswasser kalt"
         }
       },
       "washer_cycle_table_00": {
         "name": "Programm",
         "state": {
           "01": "Normal",
-          "70": "Intensiv",
           "55": "Weißwäsche",
+          "57": "Selbstreinigung+",
+          "5b": "Baumwolle",
+          "5c": "Extra Schnell",
+          "5d": "Super Eco",
+          "5e": "Feinwäsche",
+          "5f": "Babypflege",
+          "60": "Outdoor",
+          "61": "Dunkle Wäsche",
+          "63": "Trommelreinigung",
+          "64": "Spülen + Schleudern",
+          "65": "Wolle",
+          "66": "Bettwäsche",
+          "67": "Pflegeleicht",
+          "68": "Eco Baumwolle",
+          "6b": "Nur Schleudern",
+          "6c": "Jeansstoff",
+          "70": "Intensiv",
           "71": "Bettwäsche",
           "72": "Hygienespülung",
-          "77": "Pflegeleicht",
-          "57": "Selbstreinigung+",
           "73": "Spülen + Schleudern",
           "74": "Sportkleidung",
           "75": "Feinwäsche",
-          "78": "Schnellwäsche"
+          "77": "Pflegeleicht",
+          "78": "Schnellwäsche",
+          "91": "Selbstreinigung",
+          "94": "Handtücher",
+          "9c": "Intensiv",
+          "9d": "Spülen + Schleudern",
+          "9e": "Pflegeleicht",
+          "9f": "Schnellwäsche",
+          "a2": "Feinwäsche",
+          "a3": "Sportkleidung",
+          "a5": "Bettwäsche",
+          "a9": "Hygienespülung",
+          "aa": "Weißwäsche",
+          "ab": "Eco Kalt",
+          "b1": "Selbstreinigung+",
+          "ba": "Abpumpen + Schleudern",
+          "d0": "Baumwolle",
+          "d1": "Eco Baumwolle",
+          "d2": "Pflegeleicht",
+          "d3": "Feinwäsche",
+          "d4": "Spülen + Schleudern",
+          "d5": "Trommelreinigung",
+          "d6": "Bettwäsche",
+          "d7": "Outdoor-Pflege",
+          "d8": "Wolle",
+          "da": "Super Eco",
+          "db": "Super Speed",
+          "dc": "Schnelle Wäsche 15'",
+          "e4": "Anti-Allergie"
         }
       },
       "washer_cycle_table_02": {
@@ -696,13 +916,18 @@
           "38": "Trocknen Baumwolle",
           "39": "Trocknen Pflegeleicht",
           "3a": "Trommelreinigung",
+          "51": "Super Speed",
           "52": "Eco Kalt",
           "53": "Intensiv",
           "54": "Handtücher",
           "55": "Sportkleidung",
+          "56": "Bettwäsche",
           "57": "Feinwäsche",
+          "5a": "Dampf-Hygiene",
+          "5b": "Kleine Beladung",
           "5e": "Spülen + Schleudern",
           "60": "Selbstreinigung+",
+          "64": "Weißwäsche mit Dampf",
           "65": "Buntwäsche",
           "66": "Jeansstoff",
           "69": "KI-Wäsche",
@@ -726,13 +951,23 @@
           "7d": "Bettwäsche/Wasserdicht",
           "7e": "Selbstreinigung",
           "7f": "Wolle/Feinwäsche",
+          "85": "Normal mit Dampf",
           "86": "Tiefenreinigung",
           "87": "Download",
           "88": "Tierpflege",
+          "8b": "Schnellwäsche",
+          "8c": "AI OptiWash",
           "8f": "Kaltwäsche Intensiv",
           "96": "Weniger Mikrofasern",
           "a0": "Schnelle Wäsche 15'",
-          "b0": "Gemischte Beladung"
+          "b0": "Gemischte Beladung",
+          "58": "Wolle",
+          "5c": "Outdoor",
+          "5d": "Power-Spülen",
+          "5f": "Nur Schleudern",
+          "63": "Power-Dampf",
+          "67": "Dampf-Anti-Allergie",
+          "68": "Dampf-Großwäsche"
         }
       },
       "washer_dry_level": {
@@ -839,11 +1074,93 @@
         "state": {
           "purification": "Reinigung",
           "ventilation": "Lüftung",
-          "smartventilation": "Intelligente Lüftung"
+          "smartventilation": "Intelligente Lüftung",
+          "aicomfort": "KI-Komfort",
+          "autoventilation": "Automatische Lüftung",
+          "freshairintake": "Frischluftzufuhr",
+          "indoorpurification": "Innenraumreinigung",
+          "indoordehumidification": "Innenraumentfeuchtung"
+        }
+      },
+      "dry_time": {
+        "name": "Trockenzeit"
+      },
+      "booster_fan_mode": {
+        "name": "Booster-Lüftermodus",
+        "state": {
+          "off": "Aus",
+          "auto": "Automatisch",
+          "high": "Hoch",
+          "medium": "Mittel"
+        }
+      },
+      "booster_light_color_temperature": {
+        "name": "Farbtemperatur des Booster-Lichts",
+        "state": {
+          "3000k": "3000 K",
+          "4000k": "4000 K",
+          "6500k": "6500 K"
+        }
+      },
+      "booster_light_brightness": {
+        "name": "Helligkeit des Booster-Lichts",
+        "state": {
+          "smart": "Smart",
+          "high": "Hoch",
+          "low": "Niedrig"
+        }
+      },
+      "booster_oscillation_angle": {
+        "name": "Booster-Schwenkwinkel",
+        "state": {
+          "normal": "Normal",
+          "circulation": "Zirkulation",
+          "right_narrow": "Rechts eng",
+          "right_wide": "Rechts weit",
+          "left_narrow": "Links eng",
+          "left_wide": "Links weit"
+        }
+      },
+      "ai_motion_wind": {
+        "name": "KI-Bewegungswind",
+        "state": {
+          "off": "Aus",
+          "surround": "Rundum",
+          "longreach": "Weitwurf",
+          "down": "Nach unten",
+          "power": "Leistung",
+          "windfree": "WindFree",
+          "aidirect": "KI direkt",
+          "aiindirect": "KI indirekt"
+        }
+      },
+      "wash_zone": {
+        "name": "Spülzone",
+        "state": {
+          "on_on": "Beide Körbe",
+          "off_on": "Nur Unterkorb",
+          "on_off": "Nur Oberkorb"
+        }
+      },
+      "lamp_level": {
+        "name": "Lampenstufe",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "high": "Hoch"
         }
       }
     },
     "sensor": {
+      "welcome_lighting_sense_level": {
+        "name": "Erfassungsstufe der Begrüßungsbeleuchtung",
+        "state": {
+          "nearest": "Am nächsten",
+          "near": "Nah",
+          "middle": "Mittel",
+          "far": "Weit"
+        }
+      },
       "auto_clean_progress": {
         "name": "Fortschritt automatische Reinigung"
       },
@@ -880,6 +1197,9 @@
       "burner_state": {
         "name": "Brenner {number} Zustand"
       },
+      "burner_power_level": {
+        "name": "Brenner {number} Leistungsstufe"
+      },
       "clean_level": {
         "name": "Reinigungsstufe"
       },
@@ -894,6 +1214,20 @@
         "state": {
           "observe": "Push (Beobachten)",
           "poll": "Abfrage"
+        }
+      },
+      "last_response": {
+        "name": "Letzte Antwort"
+      },
+      "filter_activity": {
+        "name": "Filteraktivität",
+        "state": {
+          "none": "Leerlauf",
+          "filtering": "Filtert",
+          "bypassing": "Umgehung",
+          "waiting": "Wartet",
+          "stopping": "Wird gestoppt",
+          "sensing": "Erkennung"
         }
       },
       "cooktop_running_state": {
@@ -975,6 +1309,12 @@
       "current_temp_c": {
         "name": "Temperatur"
       },
+      "food_probe_temp": {
+        "name": "Bratenthermometer"
+      },
+      "food_probe_setpoint": {
+        "name": "Bratenthermometer-Zieltemperatur"
+      },
       "current_temperature_c": {
         "name": "Temperatur"
       },
@@ -996,16 +1336,19 @@
       "drum_clean_last_cleaned": {
         "name": "Trommel zuletzt gereinigt"
       },
-      "dry_level": {
-        "name": "Trockenstufe"
-      },
-      "dry_time": {
-        "name": "Trockenzeit"
+      "quick_wash": {
+        "name": "Schnellwäsche",
+        "state": {
+          "not_used": "Nicht verfügbar",
+          "off": "Aus",
+          "on": "Ein"
+        }
       },
       "dryer_type": {
         "name": "Trocknertyp",
         "state": {
-          "electricity": "Strom"
+          "electricity": "Strom",
+          "gas": "Gas"
         }
       },
       "dust": {
@@ -1013,6 +1356,9 @@
       },
       "energy_kwh": {
         "name": "Energie"
+      },
+      "usage_runtime_hours": {
+        "name": "Betriebszeit"
       },
       "energy_last_month_kwh": {
         "name": "Energie (letzter Monat)"
@@ -1060,7 +1406,7 @@
         "name": "{instance_name} verbleibende Reifezeit"
       },
       "kimchi_rack_count": {
-        "name": "{instance_name} Fachanzahl"
+        "name": "{instance_name} Anzahl Ablagen"
       },
       "hood_filter_capacity": {
         "name": "Filterkapazität"
@@ -1102,13 +1448,29 @@
         "name": "Betriebszeit"
       },
       "oven_state": {
-        "name": "Ofenzustand"
+        "name": "Ofenzustand",
+        "state": {
+          "ready": "Bereit",
+          "preheat": "Vorheizen",
+          "cooking": "Garen",
+          "finish": "Fertig"
+        }
       },
       "cavity_state": {
         "name": "Garraumzustand"
       },
       "power_level": {
         "name": "Leistungsstufe"
+      },
+      "paired_hood_fan_setting": {
+        "name": "Lüftereinstellung der gekoppelten Dunstabzugshaube",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "medium": "Mittel",
+          "high": "Hoch",
+          "boost": "Boost"
+        }
       },
       "paired_hood_fan_speed": {
         "name": "Lüfterstufe der gekoppelten Dunstabzugshaube"
@@ -1118,6 +1480,12 @@
       },
       "paired_hood_model": {
         "name": "Modell der gekoppelten Dunstabzugshaube"
+      },
+      "paired_hood_shutoff_timer_set": {
+        "name": "Eingestellter Abschalttimer der gekoppelten Dunstabzugshaube"
+      },
+      "paired_hood_shutoff_timer_state": {
+        "name": "Abschalttimer-Status der gekoppelten Dunstabzugshaube"
       },
       "power_energy_kwh": {
         "name": "Energieverbrauch"
@@ -1138,6 +1506,7 @@
         "name": "Fortschritt",
         "state": {
           "idle": "Leerlauf",
+          "delaywash": "Startverzögerung",
           "weightsensing": "Beladungserkennung",
           "wash": "Waschen",
           "rinse": "Spülen",
@@ -1224,6 +1593,9 @@
       "zone_temperature": {
         "name": "Zonentemperatur"
       },
+      "zone2_temperature": {
+        "name": "Temperatur Zone 2"
+      },
       "watertank_full_alarm_status": {
         "name": "Wassertank-voll-Alarmstatus"
       },
@@ -1238,9 +1610,111 @@
       },
       "energy_saving_operating_status": {
         "name": "Energiespar-Betriebsstatus"
+      },
+      "active_burners": {
+        "name": "Aktive Brenner"
+      },
+      "cooktop_monitoring": {
+        "name": "Kochfeldüberwachung"
+      },
+      "booster_angle_location": {
+        "name": "Booster-Winkelposition"
+      },
+      "cooking_mode": {
+        "name": "Kochmodus",
+        "state": {
+          "no_operation": "Kein Betrieb",
+          "micro_wave": "Mikrowelle",
+          "autocook": "Automatikgaren",
+          "keep_warm": "Warmhalten"
+        }
+      },
+      "cook_time": {
+        "name": "Kochzeit"
+      },
+      "cook_time_remaining": {
+        "name": "Verbleibende Kochzeit"
+      },
+      "cook_finish_time": {
+        "name": "Ende der Kochzeit"
+      },
+      "sub_operation": {
+        "name": "Teilvorgang"
+      },
+      "hood_fan_speed": {
+        "name": "Lüfterstufe",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "medium": "Mittel",
+          "high": "Hoch",
+          "boost": "Boost"
+        }
+      },
+      "hood_lamp": {
+        "name": "Lampe",
+        "state": {
+          "off": "Aus",
+          "medium": "Mittel",
+          "on": "Ein"
+        }
+      },
+      "dual_setpoint_cooling": {
+        "name": "Doppelter Sollwert Kühlen"
+      },
+      "dual_setpoint_heating": {
+        "name": "Doppelter Sollwert Heizen"
+      },
+      "auto_changeover_cool_primary_offset": {
+        "name": "Automatische Umschaltung Kühlen primärer Versatz"
+      },
+      "auto_changeover_cool_secondary_offset": {
+        "name": "Automatische Umschaltung Kühlen sekundärer Versatz"
+      },
+      "auto_changeover_heat_primary_offset": {
+        "name": "Automatische Umschaltung Heizen primärer Versatz"
+      },
+      "auto_changeover_heat_secondary_offset": {
+        "name": "Automatische Umschaltung Heizen sekundärer Versatz"
+      },
+      "cooktop_device_type": {
+        "name": "Gerätetypcode"
+      },
+      "cooktop_flex_coil": {
+        "name": "Flex-Spulencode"
+      },
+      "main_timer_set": {
+        "name": "Haupttimer-Einstellung"
+      },
+      "burner_pan_size": {
+        "name": "Kochzone {number} Topfgröße"
+      },
+      "cooktop_timer_remaining": {
+        "name": "Verbleibende Timerzeit"
+      },
+      "cooktop_timer_status": {
+        "name": "Timerstatus"
+      },
+      "cooktop_ring_size": {
+        "name": "Kochzonengröße {number}",
+        "state": {
+          "idle": "Inaktiv",
+          "single": "Einfach",
+          "dual": "Zweifach",
+          "triple": "Dreifach"
+        }
+      },
+      "heat_generated_kwh": {
+        "name": "Erzeugte Wärme"
+      },
+      "three_way_valve": {
+        "name": "3-Wege-Ventil"
       }
     },
     "switch": {
+      "night_lighting_schedule": {
+        "name": "Zeitplan für Nachtbeleuchtung"
+      },
       "ai_energy_level": {
         "name": "KI-Energiesparmodus"
       },
@@ -1352,11 +1826,26 @@
       "ice_night_mode": {
         "name": "Nachtruhemodus Eisbereitung"
       },
+      "ai_precise_cooling": {
+        "name": "KI-Präzisionskühlung"
+      },
       "instance_enabled": {
         "name": "{instance_name} aktiviert"
       },
       "intensive": {
         "name": "Intensiv"
+      },
+      "add_wash_alarm": {
+        "name": "AddWash-Hinweis"
+      },
+      "add_wash_alarm_rinse": {
+        "name": "AddWash Spülen"
+      },
+      "add_wash_alarm_final_rinse": {
+        "name": "AddWash letztes Spülen"
+      },
+      "add_wash_alarm_spin": {
+        "name": "AddWash Schleudern"
       },
       "lamp": {
         "name": "Lampe"
@@ -1427,6 +1916,9 @@
       "bubble_soak": {
         "name": "Blasen-Einweichen"
       },
+      "station_light": {
+        "name": "Stationslicht"
+      },
       "storm_wash": {
         "name": "Storm Wash+"
       },
@@ -1441,9 +1933,42 @@
       },
       "windsleep": {
         "name": "Schlafmodus"
+      },
+      "auto_detergent": {
+        "name": "Automatische Waschmitteldosierung"
+      },
+      "auto_softener": {
+        "name": "Automatische Weichspülerdosierung"
+      },
+      "booster_light": {
+        "name": "Booster-Licht"
+      },
+      "booster_light_manual_brightness": {
+        "name": "Manuelle Booster-Helligkeit"
+      },
+      "booster_oscillation": {
+        "name": "Booster-Schwenken"
+      },
+      "auto_changeover": {
+        "name": "Automatische Umschaltung"
+      },
+      "interlock": {
+        "name": "Verriegelung"
+      },
+      "speed_booster": {
+        "name": "Speed Booster"
+      },
+      "damp_alert": {
+        "name": "Signal Mischbeladung"
+      },
+      "extra_rinse": {
+        "name": "Extra-Spülen"
       }
     },
     "time": {
+      "delay_finish_at": {
+        "name": "Fertig um"
+      },
       "dnd_end": {
         "name": "Nicht-stören-Ende"
       },
@@ -1455,6 +1980,12 @@
       },
       "led_night_start": {
         "name": "Tür-LED-Nacht Start"
+      },
+      "ice_night_end": {
+        "name": "Nachtruhemodus Eisbereitung Ende"
+      },
+      "ice_night_start": {
+        "name": "Nachtruhemodus Eisbereitung Start"
       },
       "night_end": {
         "name": "Nachtlicht Ende"
@@ -1479,16 +2010,12 @@
     "step": {
       "user": {
         "title": "Samsung-Gerät hinzufügen",
-        "description": "Geben Sie die IP-Adresse Ihres Samsung-Geräts sowie die AC14K_M-CA-Zugangsdaten ein, mit denen Gerätezertifikate erstellt werden.",
+        "description": "Geben Sie die IP-Adresse Ihres Samsung-Geräts ein. LocalThings richtet es automatisch mit einem selbstsignierten Zertifikat ein – die meisten Geräte benötigen nichts weiter.",
         "data": {
-          "host": "IP-Adresse",
-          "ca_cert_pem": "CA-Zertifikat (PEM)",
-          "ca_key_pem": "CA-Privatschlüssel (PEM)"
+          "host": "IP-Adresse"
         },
         "data_description": {
-          "host": "Lokale IP-Adresse Ihres Samsung-Geräts (z. B. 192.168.1.50).",
-          "ca_cert_pem": "Die PEM-codierte AC14K_M-CA-Zertifikatskette. Fügen Sie den vollständigen Inhalt Ihrer Fullchain-PEM-Datei ein, einschließlich aller BEGIN/END CERTIFICATE-Blöcke.",
-          "ca_key_pem": "Der PEM-codierte AC14K_M-Privatschlüssel. Fügen Sie den vollständigen Inhalt einschließlich der BEGIN/END PRIVATE KEY-Kopf- und Fußzeile ein."
+          "host": "Lokale IP-Adresse Ihres Samsung-Geräts (z. B. 192.168.1.50)."
         }
       },
       "user_reuse": {
@@ -1501,26 +2028,133 @@
           "host": "Lokale IP-Adresse Ihres Samsung-Geräts (z. B. 192.168.1.50)."
         }
       },
+      "credential": {
+        "title": "Zertifikat abgelehnt",
+        "description": "{host} hat das automatische Zertifikat abgelehnt. Manche Geräte verwenden statt eines Zertifikats einen Pre-Shared Key. LocalThings kann diesen Schlüssel nicht selbst beschaffen, importieren Sie also einen, den Sie bereits besitzen. Ein AC14K_M-CA-Zertifikat wird ebenfalls angeboten, aber bisher wurde kein Gerät gemeldet, das das automatische Zertifikat ablehnte und ein solches annahm.\n\nGeräte mit Pre-Shared Key versuchen wir noch zu verstehen, und Sie werden damit wahrscheinlich auf Probleme stoßen. Unseren Plan, unsere bisherigen Erkenntnisse und einen Ort für Rückmeldungen finden Sie in [Issue #435]({issue_url}).",
+        "menu_options": {
+          "psk_owner": "Owner-Pre-Shared-Key importieren",
+          "psk_peer": "Peer-Pre-Shared-Key importieren",
+          "fallback_ca": "AC14K_M-CA-Zertifikat versuchen"
+        }
+      },
+      "credential_psk": {
+        "title": "Dieses Gerät verwendet vermutlich einen Pre-Shared Key",
+        "description": "{host} hat das automatische Zertifikat abgelehnt, und seine unverschlüsselten Sicherheitsmetadaten besagen, dass es sich stattdessen mit einem Pre-Shared Key authentifiziert. LocalThings kann diesen Schlüssel nicht selbst beschaffen, importieren Sie also einen, den Sie bereits besitzen. Ein AC14K_M-CA-Zertifikat wird ebenfalls angeboten, aber bisher wurde kein Gerät gemeldet, das das automatische Zertifikat ablehnte und ein solches annahm.\n\nGeräte mit Pre-Shared Key versuchen wir noch zu verstehen, und Sie werden damit wahrscheinlich auf Probleme stoßen. Unseren Plan, unsere bisherigen Erkenntnisse und einen Ort für Rückmeldungen finden Sie in [Issue #435]({issue_url}).",
+        "menu_options": {
+          "psk_owner": "Owner-Pre-Shared-Key importieren",
+          "psk_peer": "Peer-Pre-Shared-Key importieren",
+          "fallback_ca": "AC14K_M-CA-Zertifikat versuchen"
+        }
+      },
+      "ca_rejected": {
+        "title": "Zertifikat weiterhin abgelehnt",
+        "description": "{host} hat auch das von dieser CA signierte Zertifikat abgelehnt. Das deckt sich mit allen bisherigen Berichten: Kein Gerät, das das automatische Zertifikat ablehnte, hat eine AC14K_M-CA angenommen. Möglicherweise verwendet es stattdessen einen Pre-Shared Key. Das Home-Assistant-Protokoll enthält den genauen Alert.\n\nGeräte mit Pre-Shared Key versuchen wir noch zu verstehen, und Sie werden damit wahrscheinlich auf Probleme stoßen. Unseren Plan, unsere bisherigen Erkenntnisse und einen Ort für Rückmeldungen finden Sie in [Issue #435]({issue_url}).",
+        "menu_options": {
+          "psk_owner": "Owner-Pre-Shared-Key importieren",
+          "psk_peer": "Peer-Pre-Shared-Key importieren",
+          "fallback_ca": "CA erneut eingeben"
+        }
+      },
+      "fallback_ca": {
+        "title": "AC14K_M-CA-Zertifikat",
+        "description": "Fügen Sie das AC14K_M-CA-Zertifikat und den privaten Schlüssel ein. LocalThings signiert damit ein Gerätezertifikat für {host}.",
+        "data": {
+          "ca_cert_pem": "CA-Zertifikat (PEM)",
+          "ca_key_pem": "CA-Privatschlüssel (PEM)"
+        },
+        "data_description": {
+          "ca_cert_pem": "Die PEM-codierte AC14K_M-CA-Zertifikatskette. Fügen Sie den vollständigen Inhalt Ihrer Fullchain-PEM-Datei ein, einschließlich aller BEGIN/END CERTIFICATE-Blöcke.",
+          "ca_key_pem": "Der PEM-codierte AC14K_M-Privatschlüssel. Fügen Sie den vollständigen Inhalt einschließlich der BEGIN/END PRIVATE KEY-Kopf- und Fußzeile ein."
+        }
+      },
+      "psk_owner": {
+        "title": "Owner-Pre-Shared-Key",
+        "description": "Geben Sie den Owner-Pre-Shared-Key für {host} ein. Die Identität ist die OCF-Owner-UUID; sie ist vorausgefüllt, wenn das Gerät eine meldet. LocalThings prüft den Schlüssel am Gerät und hält fest, welches Gerät geantwortet hat, bevor es hinzugefügt wird.\n\nGeräte mit Pre-Shared Key versuchen wir noch zu verstehen, und Sie werden damit wahrscheinlich auf Probleme stoßen. Unseren Plan, unsere bisherigen Erkenntnisse und einen Ort für Rückmeldungen finden Sie in [Issue #435]({issue_url}).",
+        "data": {
+          "psk_identity": "Identität (Owner-UUID)",
+          "psk_key": "Schlüssel"
+        },
+        "data_description": {
+          "psk_key": "32 oder 64 Hexadezimalzeichen."
+        }
+      },
+      "psk_peer": {
+        "title": "Peer-Pre-Shared-Key",
+        "description": "Geben Sie die paarweise Peer-Anmeldung ein, die neben Samsungs Eigentümerschaft auf {host} installiert wurde, genau so, wie das installierende Werkzeug sie ausgegeben hat. Weder Identität noch Schlüssel lassen sich vom Gerät auslesen. LocalThings prüft den Schlüssel am Gerät und hält fest, welches Gerät geantwortet hat, bevor es hinzugefügt wird.\n\nGeräte mit Pre-Shared Key versuchen wir noch zu verstehen, und Sie werden damit wahrscheinlich auf Probleme stoßen. Unseren Plan, unsere bisherigen Erkenntnisse und einen Ort für Rückmeldungen finden Sie in [Issue #435]({issue_url}).",
+        "data": {
+          "psk_identity": "Identität (Peer-UUID)",
+          "psk_key": "Schlüssel"
+        },
+        "data_description": {
+          "psk_key": "32 oder 64 Hexadezimalzeichen."
+        }
+      },
+      "reconfigure": {
+        "title": "Geräteadresse ändern",
+        "description": "Geben Sie die aktuelle IP-Adresse des Geräts ein. Alles andere bleibt unverändert — Entitäten, Verlauf und Automationen bleiben erhalten.",
+        "data": {
+          "host": "IP-Adresse"
+        },
+        "data_description": {
+          "host": "Lokale IP-Adresse Ihres Samsung-Geräts (z. B. 192.168.1.50)."
+        }
+      },
       "confirm_unknown_type": {
         "title": "Gerätetyp nicht erkannt",
         "description": "Dieses Gerät hat das Modell \"{model}\" gemeldet, das LocalThings noch nicht als bekannten Typ erkennt. Es wird trotzdem hinzugefügt, jedoch nur mit allgemeinen Funktionen (z. B. Ein/Aus, Alarme, sofern vorhanden) und nicht mit dem vollständigen Funktionsumfang seiner Gerätefamilie. Sie können später helfen, die vollständige Unterstützung hinzuzufügen, indem Sie die Diagnosedaten für dieses Gerät herunterladen (Einstellungen > Geräte & Dienste > dieses Gerät > das Menü > Diagnose herunterladen) und sie in einem neuen Issue einreichen. Bestätigen Sie, um es trotzdem hinzuzufügen."
+      },
+      "legacy_token": {
+        "title": "Gerätetoken",
+        "description": "Dieses Gerät ({host}) nutzt Samsungs ältere lokale API, die neben dem Zertifikat auch einen Gerätetoken benötigt.\n\nLassen Sie das Feld leer und senden Sie ab, damit das Gerät selbst einen ausstellt: Es wird danach gefragt und schickt ihn an Home Assistant auf Port 8889 zurück. Schalten Sie zuvor am Gerät die Fernsteuerung (Smart Control) bei geschlossener Tür ein, sonst verlässt es binnen Minuten das WLAN und antwortet nicht mehr. Das dauert bis zu anderthalb Minuten.\n\nErreicht das Gerät Home Assistant auf Port 8889 nicht, besorgen Sie den Token anders und fügen Sie ihn hier ein.",
+        "data": {
+          "device_token": "Gerätetoken (leer lassen, um einen anzufordern)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Gerätetoken abgelehnt",
+        "description": "{host} akzeptiert sein Gerätetoken nicht mehr. Lassen Sie das Feld leer und senden Sie ab, damit das Gerät ein neues ausstellt (Fernsteuerung an, Tür geschlossen, Port 8889 auf Home Assistant erreichbar), oder fügen Sie ein anderweitig beschafftes Token ein.",
+        "data": {
+          "device_token": "Gerätetoken (leer lassen, um eines anzufordern)"
+        }
       }
     },
     "error": {
       "no_response": "Keine Antwort von dieser IP-Adresse — auf keinem Port im lokalen API-Bereich des Geräts (UDP 49152-49160) kam eine Rückmeldung. Prüfen Sie, ob die IP-Adresse korrekt ist, das Gerät eingeschaltet und im selben Netzwerk wie Home Assistant ist, und ob keine Firewall den UDP-Verkehr zu ihm blockiert.",
-      "ports_closed": "Diese IP-Adresse ist erreichbar, hat aber jeden Port im lokalen API-Bereich (UDP 49152-49160) aktiv abgelehnt. Entweder handelt es sich nicht um ein Samsung-Gerät, oder es läuft mit älterer Firmware, die nur über TCP 8888 mit der Samsung-Cloud kommuniziert — das kann diese Integration nicht nutzen.",
+      "ports_closed": "Diese IP-Adresse ist erreichbar, hat aber jeden Port im lokalen API-Bereich (UDP 49152-49160) aktiv abgelehnt und auf dem Discovery-Kanal überhaupt nicht geantwortet. Es handelt sich höchstwahrscheinlich nicht um ein Samsung-Gerät, oder um eines ohne aktivierte lokale API.",
       "no_dtls_server": "Ports im lokalen API-Bereich sind unter dieser Adresse erreichbar, aber nichts hat auf einen DTLS-Handshake reagiert. Prüfen Sie, ob die IP-Adresse tatsächlich zum Gerät gehört und nicht zu einem anderen Gerät in Ihrem Netzwerk.",
-      "handshake_timeout": "Das Gerät hat auf seinem lokalen API-Port geantwortet, den DTLS-Handshake aber nie abgeschlossen. Meist hält es noch die Sitzung eines vorherigen Versuchs — warten Sie etwa eine Minute und versuchen Sie es erneut.",
+      "appliance_no_dtls": "Diese Adresse gehört zu einem Samsung-Gerät — es hat sich über den unverschlüsselten Discovery-Kanal als {model} identifiziert und {port} als seinen sicheren Port gemeldet — aber dort wurde nie ein DTLS-Handshake abgeschlossen. Die Adresse ist nicht das Problem. Prüfen Sie, ob am Gerät die Fernsteuerung oder eine ähnliche Einstellung am Bedienfeld ausgeschaltet ist, und schauen Sie für den genauen Fehler im Home Assistant-Log nach.",
+      "non_appliance_stack": "An dieser IP-Adresse hat etwas geantwortet, sich aber als OCF-Dienst gemeldet, der kein Gerät ist. Manche Samsung-Geräte betreiben einen solchen neben ihrem eigenen, und LocalThings findet das Gerät dahinter nur, wenn Home Assistant im selben Netzwerksegment ist. Bring Home Assistant und das Gerät ins selbe Subnetz und VLAN und versuche es dann erneut.",
+      "multiple_appliances": "An dieser IP-Adresse antwortet mehr als ein Samsung-Gerät, und LocalThings kann noch nicht zwischen ihnen wählen. Bitte melde das im Issue-Tracker von LocalThings und füge das Home-Assistant-Log bei.",
+      "handshake_timeout": "Das Gerät hat auf seinem lokalen API-Port geantwortet, den DTLS-Handshake aber auch nach einem erneuten Versuch nicht abgeschlossen. Versuchen Sie es noch einmal. Schlägt es weiter fehl, gibt ein Neustart des Geräts die Verbindungen frei, die es noch hält; den genauen Fehler finden Sie im Home-Assistant-Protokoll.",
       "cert_rejected": "Das Gerät hat das Zertifikat abgelehnt. Das CA-Zertifikat und der Schlüssel sind höchstwahrscheinlich nicht die AC14K_M-CA, der dieses Gerät vertraut, oder sie passen nicht zueinander. Weitere Informationen in den Logs.",
+      "psk_rejected": "Das Gerät hat den Pre-Shared Key abgelehnt. Identität oder Schlüssel sind falsch, oder sie gehören zu einem anderen Gerät oder zu einem inzwischen geänderten Eigentümer. Das Home-Assistant-Protokoll enthält den genauen Alert.",
+      "identity_unproven": "Der Schlüssel hat funktioniert, aber das Gerät hat seine OCF-Geräte-ID nicht über die verschlüsselte Verbindung gemeldet. LocalThings kann daher nicht bestätigen, welches Gerät den Schlüssel besitzt, und fügt es nicht hinzu. Versuchen Sie es erneut, während das Gerät wach ist. Tritt das weiterhin auf, melden Sie es in [Issue #435]({issue_url}) zusammen mit dem Home-Assistant-Protokoll.",
+      "invalid_psk_identity": "Geben Sie die Identität als UUID ein, zum Beispiel 12345678-1234-1234-1234-123456789abc.",
+      "psk_identity_zero_byte": "Diese UUID enthält ein Null-Byte, das der installierte Transport nicht senden kann. Lassen Sie die wiederhergestellte Identität unverändert.",
+      "invalid_psk_key": "Geben Sie den Schlüssel als 32 oder 64 Hexadezimalzeichen ein.",
       "handshake_failed": "Das Gerät hat den DTLS-Handshake aus einem Grund abgelehnt, der nichts mit dem Zertifikat zu tun hat — höchstwahrscheinlich eine falsche Protokoll- oder Verschlüsselungsübereinstimmung. Weitere Informationen in den Logs.",
       "cloud_unreachable": "Das Cloud-Gateway von Samsung konnte nicht erreicht werden, um die für die Zertifikatserstellung dieses Geräts benötigte UUID abzurufen. Prüfen Sie den Internetzugang von Home Assistant und versuchen Sie es erneut.",
       "unexpected_response": "Die Verbindung zum Gerät war erfolgreich, es hat jedoch keine verwendbare Gerätebeschreibung zurückgegeben. Möglicherweise wird dieses Gerät von der Integration nicht unterstützt. Weitere Informationen in den Logs.",
-      "cannot_connect": "Verbindung zum Gerät nicht möglich. Prüfen Sie, ob die IP-Adresse erreichbar und die CA-Zugangsdaten korrekt sind.",
+      "cannot_connect": "Verbindung zum Gerät nicht möglich. Prüfen Sie, ob die IP-Adresse korrekt ist und das Gerät eingeschaltet und mit Ihrem Netzwerk verbunden ist.",
       "invalid_ca": "Das CA-Zertifikat oder der Privatschlüssel konnte nicht geladen werden. Prüfen Sie, ob der PEM-Inhalt korrekt ist und der Schlüssel zum Zertifikat passt.",
-      "unknown": "Unerwarteter Fehler. Weitere Informationen in den Logs."
+      "unknown": "Unerwarteter Fehler. Weitere Informationen in den Logs.",
+      "wrong_device": "Unter dieser Adresse hat ein Samsung-Gerät geantwortet, aber nicht dieses — es hat eine andere Identität gemeldet. Prüfen Sie, ob die Adresse zu diesem Gerät gehört. Um das andere hinzuzufügen, verwenden Sie „Gerät hinzufügen“.",
+      "token_not_received": "Es ist kein Gerätetoken eingetroffen. Prüfen Sie, ob am Gerät die Fernsteuerung bei geschlossener Tür eingeschaltet ist und ob es Home Assistant auf Port 8889 erreicht – oder fügen Sie einen anders besorgten Token ein.",
+      "invalid_token": "Das Gerät hat dieses Gerätetoken abgelehnt. Lassen Sie das Feld leer, um ein neues anzufordern.",
+      "callback_port_in_use": "Port 8889 ist auf Home Assistant bereits belegt, meist durch eine noch wartende Token-Anfrage. Versuchen Sie es in anderthalb Minuten erneut.",
+      "callback_cert_rejected": "Das Gerät hat sich auf Port 8889 zurückgemeldet, aber das selbstsignierte Zertifikat von Home Assistant abgelehnt. Fügen Sie das AC14K_M-CA-Zertifikat und den Schlüssel ein, damit LocalThings ein akzeptiertes Zertifikat signieren kann; die Token-Anfrage wird dann erneut ausgeführt.",
+      "callback_ca_rejected": "Das Gerät hat sich auf Port 8889 zurückgemeldet, aber auch das mit AC14K_M signierte Zertifikat abgelehnt. Fügen Sie ein auf anderem Weg beschafftes Token ein; der genaue Handshake-Fehler steht im Home Assistant-Protokoll."
     },
     "abort": {
-      "already_configured": "Gerät ist bereits konfiguriert"
+      "already_configured": "Gerät ist bereits konfiguriert",
+      "already_in_progress": "Die Konfiguration läuft bereits",
+      "reconfigure_successful": "Adresse aktualisiert",
+      "no_entry_for_mac": "Kein konfiguriertes Gerät speichert diese MAC-Adresse",
+      "reauth_successful": "Das neue Gerätetoken funktioniert; das Gerät verbindet sich neu.",
+      "reauth_unsupported": "Für dieses Gerät gibt es hier keine Zugangsdaten zu erneuern. Wenn es nicht mehr antwortet, entfernen Sie es und fügen Sie es erneut hinzu."
+    },
+    "progress": {
+      "legacy_token": "Warte darauf, dass {host} ein Gerätetoken an Home Assistant auf Port 8889 sendet. Das dauert bis zu anderthalb Minuten."
     }
   },
   "options": {
@@ -1529,6 +2163,7 @@
         "title": "LocalThings-Optionen",
         "menu_options": {
           "settings": "Geräteeinstellungen",
+          "subdevices": "Untergeräte",
           "cloud_courses": "Download-Programme",
           "debug_write": "Debug: In eine Ressource schreiben",
           "forget_learned_modes": "Gemerkte Modi vergessen"
@@ -1542,6 +2177,13 @@
           "finish_time_hysteresis_minutes": "Voraussichtliches Ende -- Mindeständerung (Minuten)",
           "learn_device_modes": "Vom Gerät gemeldete, aber nicht angegebene Modi merken",
           "cloud_courses_enabled": "Heruntergeladene Programme anbieten"
+        }
+      },
+      "subdevices": {
+        "title": "Untergeräte",
+        "description": "Manche Geräte stellen mehr als ein Gerät bereit: jedes Innengerät einer Multi-Split-Anlage oder jeden Garraum eines Doppelbackofens. Andere melden einen zusätzlichen Platz ohne echte Hardware, der als doppeltes oder leeres Gerät erscheint. Entferne das Häkchen bei jedem Untergerät, das zu nichts an deinem Gerät passt. Sein Gerät wird entfernt und die Integration ohne es neu geladen; setze das Häkchen wieder, um es zurückzuholen.",
+        "data": {
+          "enabled_subdevices": "Diese Untergeräte behalten"
         }
       },
       "debug_write": {
@@ -1632,8 +2274,17 @@
     "remote_control_disabled": {
       "message": "Die Fernsteuerung ist bei diesem Gerät ausgeschaltet. Schauen Sie im Handbuch Ihres Geräts nach, wie Sie die Fernsteuerung aktivieren, bevor Home Assistant es steuern kann."
     },
+    "oven_mode_idle_not_selectable": {
+      "message": "NoOperation meldet der Backofen im Leerlauf. Es lässt sich nicht als Betriebsart auswählen; brechen Sie den Garvorgang stattdessen am Bedienfeld des Backofens ab."
+    },
     "debug_payload_empty": {
       "message": "Die Debug-Schreibdaten müssen ein nicht leeres Objekt sein."
+    },
+    "debug_batch_too_many_elements": {
+      "message": "Eine Batch-Nutzlast muss zwischen 1 und {max} Elemente enthalten."
+    },
+    "debug_batch_element_invalid": {
+      "message": "Jedes Batch-Element muss ein Objekt mit href sein; ein vorhandenes rep muss ein Objekt sein."
     },
     "resource_href_required": {
       "message": "Ein Ressourcen-href ist erforderlich."
@@ -1650,8 +2301,29 @@
     "command_failed": {
       "message": "Der Befehl an {href} ist auch nach erneutem Verbinden fehlgeschlagen: {error}"
     },
+    "command_refused": {
+      "message": "Das Gerät hat den Befehl an {href} abgelehnt: {error}"
+    },
+    "command_not_confirmed": {
+      "message": "Der Befehl an {href} wurde bei ausgeschalteter Fernsteuerung gesendet, aber das Gerät zeigt ihn noch nicht an. Falls es nicht reagiert, schalten Sie die Fernsteuerung am Gerät ein."
+    },
     "debug_read_failed": {
       "message": "Das Lesen von {href} ist fehlgeschlagen: {error}"
+    },
+    "observe_duration_out_of_range": {
+      "message": "Die Dauer muss größer als 0 und höchstens {max} Sekunden sein."
+    },
+    "observe_not_supported": {
+      "message": "Die Schnittstelle dieses Geräts unterstützt das Beobachten von Ressourcen nicht."
+    },
+    "observe_query_while_observed": {
+      "message": "{href} wird von dieser Integration bereits beobachtet und kann daher nicht erneut mit einer Abfrage beobachtet werden."
+    },
+    "observe_in_progress": {
+      "message": "{href} wird bereits von einem anderen Aufruf beobachtet. Warte, bis er fertig ist."
+    },
+    "debug_observe_failed": {
+      "message": "Das Beobachten von {href} ist fehlgeschlagen: {error}"
     },
     "debug_too_many_writes": {
       "message": "Geben Sie zwischen 1 und 10 Schreibvorgänge an."
@@ -1670,6 +2342,150 @@
     },
     "service_device_not_loaded": {
       "message": "Dieses Gerät ist noch nicht verbunden. Versuchen Sie es erneut, sobald es geladen wurde."
+    },
+    "cook_start_not_supported": {
+      "message": "Dieses Gerät meldet keine Betriebsart, die aus der Ferne gestartet werden darf, daher kann Home Assistant es nicht starten."
+    },
+    "cook_start_not_idle": {
+      "message": "Das Gerät gart bereits. Stoppen Sie es zuerst, oder ändern Sie Temperatur und Garzeit während des Betriebs."
+    },
+    "cook_mode_required": {
+      "message": "Wählen Sie zuerst eine Betriebsart. Dieses Gerät kann gestartet werden in: {startable}."
+    },
+    "cook_mode_not_startable": {
+      "message": "{mode} kann auf diesem Gerät nicht aus der Ferne gestartet werden. Möglich sind: {startable}."
+    },
+    "cook_mode_unavailable": {
+      "message": "{mode} ist in diesem Garraum gerade nicht verfügbar. Starten lässt sich: {startable}."
+    },
+    "cook_temperature_not_supported": {
+      "message": "{mode} hat keine Temperatureinstellung."
+    },
+    "cook_temperature_required": {
+      "message": "{mode} benötigt eine Temperatur."
+    },
+    "cook_temperature_not_a_choice": {
+      "message": "{mode} erlaubt nur {choices}."
+    },
+    "cook_temperature_out_of_range": {
+      "message": "{mode} erlaubt eine Temperatur von {min} bis {max}."
+    },
+    "cook_duration_not_supported": {
+      "message": "{mode} hat keine Garzeit."
+    },
+    "cook_duration_required": {
+      "message": "{mode} benötigt eine Garzeit."
+    },
+    "cook_duration_out_of_range": {
+      "message": "{mode} erlaubt eine Garzeit von {min} bis {max}."
+    },
+    "extra_rinse_unavailable_for_cycle": {
+      "message": "Extra Rinse ist bei dem ausgewählten Programm nicht verfügbar."
+    },
+    "paired_hood_fan_off": {
+      "message": "Schalten Sie den Lüfter der Dunstabzugshaube ein, bevor Sie den Abschalttimer einstellen."
+    }
+  },
+  "selector": {
+    "instance_name": {
+      "options": {
+        "freezer": "Gefrierschrank",
+        "cooler": "Kühlschrank",
+        "top": "Oberes Fach",
+        "middle": "Mittleres Fach",
+        "bottom": "Unteres Fach",
+        "onedoor": "Kimchi-Fach",
+        "winecellar_top": "Obere Weinzone",
+        "winecellar_bottom": "Untere Weinzone",
+        "door_freezer": "Gefrierschranktür",
+        "door_cooler": "Kühlschranktür",
+        "door_cvroom": "Flex-Zonen-Tür",
+        "door_winecellar": "Weinkühlschranktür",
+        "door_onedoorfreezer": "Haupttür",
+        "door_onedoorkimchi": "Haupttür",
+        "ice_maker": "Eisbereiter",
+        "cubed_ice": "Eiswürfel",
+        "ice_bites": "Ice Bites",
+        "whiskey_ice_ball": "Eiskugeln"
+      }
+    }
+  },
+  "services": {
+    "start_cooking": {
+      "name": "Garen starten",
+      "description": "Startet einen Garvorgang in einem Backofen, Herd oder einer Mikrowelle. Nur Modi, die laut Gerät aus der Ferne gestartet werden dürfen, sind möglich, jeweils mit den Temperatur- und Zeitgrenzen des Geräts für diesen Modus. Die Fernsteuerung muss am Gerät eingeschaltet sein, und das Gerät muss im Leerlauf sein. Lass alle Felder leer, um zu starten, was die Modus-, Sollwert- und Garzeit-Entitäten gerade enthalten; ansonsten gilt für alles Weggelassene der Standardwert des Modus.",
+      "fields": {
+        "device_id": {
+          "name": "Gerät",
+          "description": "Der Backofen, Herd oder die Mikrowelle, die gestartet werden soll."
+        },
+        "mode": {
+          "name": "Modus",
+          "description": "Der Garmodus, so wie das Gerät ihn nennt (zum Beispiel Bake oder ConvectionBake). Standard ist der eigene Standardmodus des Geräts."
+        },
+        "temperature": {
+          "name": "Temperatur",
+          "description": "In der Temperatureinheit von Home Assistant. Wird auf die Schrittweite des Modus gerundet. Standard ist der eigene Standardwert des Modus. Für einen Modus ohne Temperatur weglassen."
+        },
+        "duration": {
+          "name": "Garzeit",
+          "description": "Wie lange gegart wird, einschließlich Vorheizen. Standard ist der eigene Standardwert des Modus."
+        }
+      }
+    },
+    "write_resource": {
+      "name": "Ressource schreiben",
+      "description": "Sendet einen oder mehrere rohe Teil-Rep-Schreibvorgänge direkt an die OCF-Ressourcen eines Geräts, der Reihe nach, mit optionaler Wartezeit zwischen den Schritten und einem verzögerten erneuten Lesen am Ende -- zum Ergründen des Schreibverhaltens eines Geräts (Issue #300), nicht für die tägliche Steuerung. Das umgeht die Sperre bei ausgeschalteter Fernsteuerung und jede write_fn/validate_fn, die ein normaler Entitäts-Schreibvorgang durchläuft, und sendet genau die angegebenen Felder unverändert: Es kann dein Gerät falsch konfigurieren. Nutze für alles, was diese Integration bereits abbildet, lieber eine echte Entität oder „Debug: In eine Ressource schreiben“ im Konfigurationsmenü der Integration.",
+      "fields": {
+        "device_id": {
+          "name": "Gerät",
+          "description": "Das Gerät, in das geschrieben wird, oder eines seiner Untergeräte."
+        },
+        "writes": {
+          "name": "Schreibvorgänge",
+          "description": "1-10 Schreibvorgänge, der Reihe nach ausgeführt. Jeder Eintrag braucht href (die kanonische Ressource, z. B. /mode/vs/0) und payload (ein nicht leeres Objekt, das unverändert als Teil-Rep-POST gesendet wird, oder eine Liste von Elementen mit href und optional rep, die unverändert als OCF-Collection-Batch gesendet wird -- die Form, mit der /device/0 auf einen Lesevorgang antwortet, und die, mit der nachweislich ein Garvorgang im Backofen startet; ein Element darf rep weglassen, und die inneren hrefs eines Batches werden nie umgeschrieben, auch nicht für ein Untergerät); settle gibt an, wie viele Sekunden nach diesem Schreibvorgang gewartet wird, bevor der nächste beginnt (0-30, Standard 0); readback (Standard true) legt fest, ob die Ressource für die Felder \"after\"/\"changed\" sofort wieder gelesen wird. Setze es auf false bei einer Platine, die einen Schreibvorgang annimmt und dann zurücksetzt -- bei mancher Firmware löst gerade dieses sofortige GET das Zurücksetzen aus, sodass das Zurücklesen Teil des Experiments wird. Ohne es kommt \"changed\" als null zurück, und verify_after ist die einzige Prüfung."
+        },
+        "hold_session_lock": {
+          "name": "Sitzung für die ganze Abfolge halten",
+          "description": "Hält die Gerätesitzung für die gesamte Abfolge, Wartezeiten eingeschlossen, damit nichts anderes -- eine routinemäßige Abfrage, der Schreibvorgang einer anderen Entität -- zwischen zwei Schritten landen und verwischen kann, auf welchen Schreibvorgang das Gerät reagiert hat. Standardmäßig an. Ausgeschaltet wird die Sitzung pro Schreibvorgang genommen und während der Wartezeiten freigegeben, sodass Entitäten während einer langen Abfolge weiter aktualisiert werden, auf Kosten dieser Gewissheit."
+        },
+        "verify_after": {
+          "name": "Danach prüfen",
+          "description": "Sekunden, die nach Ende der gesamten Abfolge gewartet wird, bevor jede berührte href erneut gelesen wird, um zu sehen, ob die Werte gehalten oder von der Platine zurückgesetzt wurden. 0 (Standard) überspringt die Prüfung."
+        }
+      }
+    },
+    "read_resource": {
+      "name": "Ressource lesen",
+      "description": "Liest die OCF-Ressourcen eines Geräts direkt und umgeht dabei das Entitätsmodell dieser Integration. Gib eine href an für ein Live-GET direkt vom Gerät -- bewusst nicht aus dem Cache, der bis zu ein Abfrageintervall alt sein kann -- oder lass sie weg, um den zwischengespeicherten Stand aller Ressourcen zu erhalten, die diese Integration auf diesem Gerät gerade verfolgt.",
+      "fields": {
+        "device_id": {
+          "name": "Gerät",
+          "description": "Das Gerät, von dem gelesen wird, oder eines seiner Untergeräte."
+        },
+        "href": {
+          "name": "Ressourcen-href",
+          "description": "Kanonische Ressourcen-href zum Lesen (z. B. /mode/vs/0). Hänge nach ? eine Abfrage an, um sie mit dem GET zu senden, z. B. /device/1?if=oic.if.b, mit & zwischen den Parametern. Weglassen, um statt eines Live-GET den zwischengespeicherten Stand aller verfolgten Ressourcen zu erhalten."
+        }
+      }
+    },
+    "observe_resource": {
+      "name": "Ressource beobachten",
+      "description": "Abonniert eine OCF-Ressource eines Geräts eine Zeit lang mit CoAP OBSERVE und gibt jede gesendete Benachrichtigung zusammen mit einem einfachen GET derselben Ressource zurück. Um Felder zu finden, die ein Gerät nur in Benachrichtigungen sendet, nicht für den täglichen Gebrauch. Abfragen und Schreibvorgänge laufen weiter, während es lauscht. Nicht verfügbar für Geräte an TCP 8888.",
+      "fields": {
+        "device_id": {
+          "name": "Gerät",
+          "description": "Das zu beobachtende Gerät oder eines seiner Untergeräte."
+        },
+        "href": {
+          "name": "Ressourcen-href",
+          "description": "Kanonische Ressourcen-href zum Beobachten (z. B. /energy/consumption/vs/0). Hänge nach ? eine Abfrage an, um sie mit dem Abonnement zu senden, wie bei „Ressource lesen“."
+        },
+        "duration": {
+          "name": "Dauer",
+          "description": "Wie viele Sekunden gelauscht wird, höchstens 120."
+        }
+      }
     }
   }
 }
