@@ -2,17 +2,10 @@ water_tank_low:
   name: Water Tank is low
   message: "Water Tank level is low"
   done_message: "Water Tank level is aceptable"
-  entity_id: binary_sensor.main_tank_water_low
-  state: 'on'
-  repeat: 30
-  can_acknowledge: true
-  skip_first: false
-  notifiers:
-    - criticallow_power:
-  name: Low Power
-  message: "Grid is down and battery is below 30%"
-  done_message: "Power situation is back to normal"
-  entity_id: binary_sensor.low_power
+  # Ultrasonic Tank integration (HomeOps/HASS-Ultrasonic-Tank): only decided
+  # while the water surface has been seen recently, so a coasted estimate can
+  # never raise a false "empty" (or clear a real one).
+  entity_id: binary_sensor.water_tank_low_water
   state: 'on'
   repeat: 30
   can_acknowledge: true
